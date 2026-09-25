@@ -27,24 +27,58 @@ import {
   SlidersHorizontal,
   Layers,
   ArrowUpRight,
-  Sliders
+  Sliders,
+  AlertCircle
 } from 'lucide-react';
 
 export default function App() {
+  // State Management sesuai instruksi
+  const [mode, setMode] = useState('encrypt'); // 'encrypt' atau 'decrypt'
+  const [password, setPassword] = useState('');
+  const [inputText, setInputText] = useState('');
+  const [outputText, setOutputText] = useState('');
+  const [error, setError] = useState('');
+
+  // State pendukung UX
   const [showPassword, setShowPassword] = useState(false);
-  const [activeTab, setActiveTab] = useState('encrypt'); // 'encrypt' or 'decrypt'
   const [selectedAlgo, setSelectedAlgo] = useState('AES-GCM');
   const [copied, setCopied] = useState(false);
 
-  // Static sample ciphertext for output box
-  const sampleCiphertext = `U2FsdGVkX195rA7uP9xZ4wT1kL9m8N7q4V5x1Z8y9W0p3A2b1C+
-dEfGhIjKlMnOpQrStUvWxYz0123456789+/AbCdEfGhIjKlMn
-OpQrStUvWxYz0123456789+/0123456789ABCDEF==
-[IV: 0x9f4a2e1d7b3c8f50 | TAG: 0x7e8d9c0b1a2f3e4d]`;
+  // Fungsi Sementara (Dummy) untuk memproses teks
+  const handleProcess = () => {
+    // Validasi: password minimal 6 karakter
+    if (!password || password.length < 6) {
+      setError('Kata sandi harus minimal 6 karakter!');
+      return;
+    }
 
+    // Validasi: input teks tidak boleh kosong
+    if (!inputText.trim()) {
+      setError(`Silakan masukkan ${mode === 'encrypt' ? 'teks asli' : 'cipherteks'} yang ingin diproses!`);
+      return;
+    }
+
+    // Jika lolos validasi, bersihkan error
+    setError('');
+
+    // Salin isi inputText ke outputText sebagai dummy output
+    setOutputText(inputText);
+  };
+
+  // Fungsi untuk menyalin isi output ke clipboard
   const handleCopy = () => {
+    if (!outputText) return;
+    navigator.clipboard.writeText(outputText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Fungsi reset seluruh input & output
+  const handleReset = () => {
+    setInputText('');
+    setOutputText('');
+    setPassword('');
+    setError('');
   };
 
   return (
@@ -74,7 +108,7 @@ OpQrStUvWxYz0123456789+/0123456789ABCDEF==
       </div>
 
       {/* Header / Brand Nav */}
-      <header className="max-w-7xl mx-auto w-full px-6 py-4 flex items-center justify-between border-b border-blue-500/10">
+      <header className="max-w-7xl mx-auto w-full px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-blue-500/10">
         <div className="flex items-center gap-3">
           <div className="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 via-cyan-500 to-purple-600 p-[1.5px] shadow-[0_0_20px_rgba(0,240,255,0.3)]">
             <div className="w-full h-full bg-[#070C1E] rounded-2xl flex items-center justify-center">
@@ -98,29 +132,37 @@ OpQrStUvWxYz0123456789+/0123456789ABCDEF==
           </div>
         </div>
 
-        {/* Mode Switcher Tabs */}
+        {/* Interaktivitas Tab: Enkripsi Teks & Dekripsi Cipherteks */}
         <div className="flex items-center p-1.5 rounded-2xl bg-[#090E24]/90 border border-blue-500/20 shadow-inner">
           <button
-            onClick={() => setActiveTab('encrypt')}
-            className={`flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-semibold font-mono transition-all duration-300 ${
-              activeTab === 'encrypt'
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_0_20px_rgba(0,240,255,0.4)]'
-                : 'text-slate-400 hover:text-slate-200'
+            type="button"
+            onClick={() => {
+              setMode('encrypt');
+              setError('');
+            }}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold font-mono transition-all duration-300 cursor-pointer ${
+              mode === 'encrypt'
+                ? 'bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.6)] font-bold'
+                : 'text-slate-400 bg-transparent hover:text-slate-200 hover:bg-slate-800/40'
             }`}
           >
             <Lock className="w-3.5 h-3.5" />
-            ENKRIPSI
+            <span>Enkripsi Teks</span>
           </button>
           <button
-            onClick={() => setActiveTab('decrypt')}
-            className={`flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-semibold font-mono transition-all duration-300 ${
-              activeTab === 'decrypt'
-                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-[0_0_20px_rgba(139,92,246,0.4)]'
-                : 'text-slate-400 hover:text-slate-200'
+            type="button"
+            onClick={() => {
+              setMode('decrypt');
+              setError('');
+            }}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold font-mono transition-all duration-300 cursor-pointer ${
+              mode === 'decrypt'
+                ? 'bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.6)] font-bold'
+                : 'text-slate-400 bg-transparent hover:text-slate-200 hover:bg-slate-800/40'
             }`}
           >
             <Unlock className="w-3.5 h-3.5" />
-            DEKRIPSI
+            <span>Dekripsi Cipherteks</span>
           </button>
         </div>
       </header>
@@ -128,14 +170,16 @@ OpQrStUvWxYz0123456789+/0123456789ABCDEF==
       {/* Main Content Layout (Grid) */}
       <main className="max-w-7xl mx-auto w-full px-6 py-6 flex-1">
         
-        {/* Top Mini Greetings Banner with Waveform (Inspired by Reference Image Top Banner) */}
+        {/* Top Mini Greetings Banner */}
         <div className="mb-6 p-5 rounded-3xl glass-panel-deep flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden">
           <div className="space-y-1">
             <h2 className="text-xl font-bold text-white tracking-wide">
               Hello, Security Operator
             </h2>
             <p className="text-xs text-slate-400">
-              What payload would you like to protect and encrypt in the vault today?
+              {mode === 'encrypt'
+                ? 'Siapkan plaintext yang ingin diamankan dan dienkripsi dengan standar kriptografi modern.'
+                : 'Tempelkan ciphertext yang telah diotentikasi untuk didekripsi kembali ke data asli.'}
             </p>
             {/* Visual audio/cryptographic frequency bars */}
             <div className="flex items-center gap-1 pt-2">
@@ -168,7 +212,7 @@ OpQrStUvWxYz0123456789+/0123456789ABCDEF==
           {/* ===================== AREA KIRI: FORM & INPUT ===================== */}
           <div className="lg:col-span-6 space-y-6">
 
-            {/* Quick Cipher Tools Grid (Mirip AI Tools di gambar referensi) */}
+            {/* Quick Cipher Tools Grid */}
             <div className="glass-panel-deep rounded-3xl p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-mono font-semibold tracking-wider text-slate-300 uppercase">
@@ -181,12 +225,12 @@ OpQrStUvWxYz0123456789+/0123456789ABCDEF==
 
               <div className="grid grid-cols-3 gap-2.5">
                 {[
-                  { id: 'AES-GCM', name: 'AES-256 GCM', desc: 'Auth Encrypt', icon: ShieldCheck, active: true },
-                  { id: 'ChaCha20', name: 'ChaCha20', desc: 'Poly1305 Stream', icon: Binary, active: false },
-                  { id: 'RSA-4096', name: 'RSA-4096', desc: 'Asymmetric Key', icon: KeyRound, active: false },
-                  { id: 'SHA-512', name: 'SHA-512', desc: 'Integrity Digest', icon: Cpu, active: false },
-                  { id: 'HMAC', name: 'HMAC-SHA', desc: 'Message Auth', icon: Zap, active: false },
-                  { id: 'PBKDF2', name: 'PBKDF2', desc: 'Key Derivation', icon: Layers, active: false },
+                  { id: 'AES-GCM', name: 'AES-256 GCM', desc: 'Auth Encrypt', icon: ShieldCheck },
+                  { id: 'ChaCha20', name: 'ChaCha20', desc: 'Poly1305 Stream', icon: Binary },
+                  { id: 'RSA-4096', name: 'RSA-4096', desc: 'Asymmetric Key', icon: KeyRound },
+                  { id: 'SHA-512', name: 'SHA-512', desc: 'Integrity Digest', icon: Cpu },
+                  { id: 'HMAC', name: 'HMAC-SHA', desc: 'Message Auth', icon: Zap },
+                  { id: 'PBKDF2', name: 'PBKDF2', desc: 'Key Derivation', icon: Layers },
                 ].map((tool) => {
                   const IconComp = tool.icon;
                   const isSelected = selectedAlgo === tool.id;
@@ -195,7 +239,7 @@ OpQrStUvWxYz0123456789+/0123456789ABCDEF==
                       key={tool.id}
                       type="button"
                       onClick={() => setSelectedAlgo(tool.id)}
-                      className={`p-3 rounded-2xl flex flex-col items-center justify-center text-center transition-all duration-300 ${
+                      className={`p-3 rounded-2xl flex flex-col items-center justify-center text-center transition-all duration-300 cursor-pointer ${
                         isSelected
                           ? 'bg-gradient-to-b from-cyan-500/20 to-blue-600/20 border border-cyan-400 shadow-[0_0_15px_rgba(0,240,255,0.25)]'
                           : 'bg-[#090F24]/80 border border-blue-500/10 hover:border-blue-500/30 text-slate-400 hover:text-slate-200'
@@ -223,71 +267,132 @@ OpQrStUvWxYz0123456789+/0123456789ABCDEF==
                     <SlidersHorizontal className="w-4 h-4 text-cyan-400" />
                   </div>
                   <h3 className="font-semibold text-slate-100 text-sm tracking-wide font-mono uppercase">
-                    Form Parameter Enkripsi
+                    {mode === 'encrypt' ? 'Form Parameter Enkripsi' : 'Form Parameter Dekripsi'}
                   </h3>
                 </div>
                 <span className="text-[10px] font-mono text-cyan-300 bg-cyan-950/80 border border-cyan-500/30 px-2.5 py-0.5 rounded-full">
-                  STATUS: WAITING INPUT
+                  {mode === 'encrypt' ? 'MODE: ENKRIPSI' : 'MODE: DEKRIPSI'}
                 </span>
               </div>
 
-              <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
-                {/* 1. Input Kata Sandi / Kunci Rahasia */}
+              {/* Tampilan Error Alert jika validasi gagal */}
+              {error && (
+                <div className="p-3.5 rounded-2xl bg-rose-950/70 border border-rose-500/40 text-rose-300 text-xs font-mono flex items-center gap-2.5 shadow-[0_0_20px_rgba(244,63,94,0.2)]">
+                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                  <div className="flex-1">
+                    <span className="font-semibold text-rose-200">Peringatan: </span>
+                    {error}
+                  </div>
+                </div>
+              )}
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleProcess();
+                }}
+                className="space-y-4"
+              >
+                {/* 1. Input Kata Sandi / Kunci Rahasia dengan Binding State */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-mono font-medium text-slate-300 flex items-center gap-1.5">
                       <KeyRound className="w-3.5 h-3.5 text-cyan-400" />
                       MASTER PASSPHRASE / KUNCI RAHASIA
                     </label>
-                    <span className="text-[10px] text-cyan-400 font-mono font-semibold">ENTROPY: 256 BITS</span>
+                    <span className="text-[10px] text-cyan-400 font-mono font-semibold">
+                      MIN. 6 KARAKTER
+                    </span>
                   </div>
 
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
-                      defaultValue="Nov@V4ult#K34m4n4nInf02026!"
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        if (error) setError('');
+                      }}
                       placeholder="Masukkan kata sandi rahasia..."
-                      className="w-full glass-input-deep rounded-2xl px-4 py-3.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none font-mono pr-12"
+                      className={`w-full glass-input-deep rounded-2xl px-4 py-3.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none font-mono pr-12 transition-all ${
+                        error && password.length < 6 ? 'border-rose-500/80 focus:border-rose-400' : ''
+                      }`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cyan-400 p-1 rounded-lg transition-colors"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cyan-400 p-1 rounded-lg transition-colors cursor-pointer"
                       title={showPassword ? 'Sembunyikan' : 'Tampilkan'}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
 
-                  {/* Password Entropy / Strength Bar */}
+                  {/* Password Entropy / Strength Bar Dinamis */}
                   <div className="mt-2.5 flex items-center gap-1.5">
-                    <div className="h-1.5 flex-1 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(0,240,255,0.7)]" />
-                    <div className="h-1.5 flex-1 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(0,240,255,0.7)]" />
-                    <div className="h-1.5 flex-1 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.7)]" />
-                    <div className="h-1.5 flex-1 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(139,92,246,0.7)]" />
-                    <span className="text-[10px] font-mono text-purple-300 font-bold ml-1">Kuat (AES Ready)</span>
+                    <div
+                      className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                        password.length > 0
+                          ? password.length < 6
+                            ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.7)]'
+                            : 'bg-cyan-400 shadow-[0_0_8px_rgba(0,240,255,0.7)]'
+                          : 'bg-slate-800'
+                      }`}
+                    />
+                    <div
+                      className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                        password.length >= 6 ? 'bg-cyan-400 shadow-[0_0_8px_rgba(0,240,255,0.7)]' : 'bg-slate-800'
+                      }`}
+                    />
+                    <div
+                      className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                        password.length >= 10 ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.7)]' : 'bg-slate-800'
+                      }`}
+                    />
+                    <div
+                      className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                        password.length >= 14 ? 'bg-purple-500 shadow-[0_0_8px_rgba(139,92,246,0.7)]' : 'bg-slate-800'
+                      }`}
+                    />
+                    <span className="text-[10px] font-mono font-bold ml-1">
+                      {password.length === 0 ? (
+                        <span className="text-slate-500">Kosong</span>
+                      ) : password.length < 6 ? (
+                        <span className="text-rose-400">Lemah (&lt; 6 Karakter)</span>
+                      ) : password.length < 10 ? (
+                        <span className="text-cyan-400">Cukup (AES OK)</span>
+                      ) : (
+                        <span className="text-purple-300">Kuat (AES Ready)</span>
+                      )}
+                    </span>
                   </div>
                 </div>
 
-                {/* 2. Textarea Data / Plaintext */}
+                {/* 2. Textarea Data / Payload dengan Binding State */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-mono font-medium text-slate-300 flex items-center gap-1.5">
                       <FileText className="w-3.5 h-3.5 text-cyan-400" />
-                      {activeTab === 'encrypt' ? 'PLAINTEXT / PESAN RAHASIA' : 'CIPHERTEXT INPUT'}
+                      {mode === 'encrypt' ? 'PLAINTEXT / PESAN RAHASIA' : 'CIPHERTEXT INPUT'}
                     </label>
-                    <span className="text-[10px] font-mono text-slate-400">CHAR COUNT: 114</span>
+                    <span className="text-[10px] font-mono text-slate-400">
+                      CHAR COUNT: {inputText.length}
+                    </span>
                   </div>
 
                   <textarea
                     rows={5}
-                    defaultValue="Data Sensitif Mata Kuliah Keamanan Informasi 2026: Proyek terminal NovaVault terenkripsi dengan zero-knowledge."
+                    value={inputText}
+                    onChange={(e) => {
+                      setInputText(e.target.value);
+                      if (error) setError('');
+                    }}
                     placeholder={
-                      activeTab === 'encrypt'
+                      mode === 'encrypt'
                         ? 'Ketik atau tempelkan data rahasia yang ingin dienkripsi...'
                         : 'Tempelkan ciphertext Base64/Hex yang ingin didekripsi...'
                     }
-                    className="w-full glass-input-deep rounded-2xl p-4 text-sm text-slate-200 placeholder-slate-500 focus:outline-none font-mono resize-none leading-relaxed"
+                    className="w-full glass-input-deep rounded-2xl p-4 text-sm text-slate-200 placeholder-slate-500 focus:outline-none font-mono resize-none leading-relaxed transition-all"
                   />
                 </div>
 
@@ -311,18 +416,18 @@ OpQrStUvWxYz0123456789+/0123456789ABCDEF==
                   </label>
                 </div>
 
-                {/* 3. Tombol Proses */}
+                {/* 3. Tombol Proses dengan Pemicu handleProcess */}
                 <button
-                  type="button"
-                  className="w-full py-4 px-6 rounded-2xl font-mono text-sm font-bold tracking-wider uppercase text-white glow-btn-action flex items-center justify-center gap-3 transition-all duration-300 active:scale-[0.99]"
+                  type="submit"
+                  className="w-full py-4 px-6 rounded-2xl font-mono text-sm font-bold tracking-wider uppercase text-white glow-btn-action flex items-center justify-center gap-3 transition-all duration-300 active:scale-[0.99] cursor-pointer"
                 >
                   <Cpu className="w-5 h-5 text-white animate-pulse" />
-                  <span>PROSES {activeTab === 'encrypt' ? 'ENKRIPSI DATA' : 'DEKRIPSI DATA'}</span>
+                  <span>PROSES {mode === 'encrypt' ? 'ENKRIPSI TEKS' : 'DEKRIPSI CIPHERTEKS'}</span>
                 </button>
               </form>
             </div>
 
-            {/* Smart Shortcuts Card (Mirip dengan Smart Shortcuts di gambar referensi) */}
+            {/* Smart Shortcuts Card */}
             <div className="glass-panel-deep rounded-3xl p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-mono font-semibold tracking-wider text-slate-300 uppercase">
@@ -379,15 +484,23 @@ OpQrStUvWxYz0123456789+/0123456789ABCDEF==
                 </div>
                 <div className="flex items-center gap-2">
                   <button
+                    type="button"
                     onClick={handleCopy}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 border border-cyan-500/40 text-xs font-mono transition-colors shadow-[0_0_10px_rgba(0,240,255,0.2)]"
+                    disabled={!outputText}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-mono transition-colors shadow-[0_0_10px_rgba(0,240,255,0.2)] ${
+                      !outputText
+                        ? 'opacity-40 cursor-not-allowed bg-slate-900 border-slate-700 text-slate-500'
+                        : 'cursor-pointer bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 border-cyan-500/40'
+                    }`}
                   >
                     {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copied ? 'Tersalin!' : 'Salin Cipher'}</span>
+                    <span>{copied ? 'Tersalin!' : 'Salin Output'}</span>
                   </button>
                   <button
-                    className="p-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 text-xs transition-colors"
-                    title="Reset Terminal"
+                    type="button"
+                    onClick={handleReset}
+                    className="p-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 text-xs transition-colors cursor-pointer"
+                    title="Reset Form & Output"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                   </button>
@@ -402,29 +515,49 @@ OpQrStUvWxYz0123456789+/0123456789ABCDEF==
                     <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80" />
                     <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
-                    <span className="ml-2 text-slate-400">novavault://ciphertext.stream</span>
+                    <span className="ml-2 text-slate-400">
+                      {mode === 'encrypt' ? 'novavault://ciphertext.stream' : 'novavault://plaintext.stream'}
+                    </span>
                   </div>
-                  <span className="text-cyan-400">FORMAT: BASE64</span>
+                  <span className="text-cyan-400">
+                    {mode === 'encrypt' ? 'FORMAT: CIPHER DUMMY' : 'FORMAT: UTF-8 PLAINTEXT'}
+                  </span>
                 </div>
 
                 {/* Output Stream Content */}
                 <div className="p-4 font-mono text-xs text-cyan-300 leading-relaxed break-all select-all min-h-[160px] bg-gradient-to-b from-transparent to-cyan-950/15">
-                  <p className="text-slate-500 text-[11px] mb-2 font-mono">// --- CIPHERTEXT PAYLOAD OTENTIKASI ---</p>
-                  <code>{sampleCiphertext}</code>
+                  {outputText ? (
+                    <div>
+                      <p className="text-slate-500 text-[11px] mb-2 font-mono">
+                        {mode === 'encrypt'
+                          ? '// --- DUMMY CIPHERTEXT PAYLOAD (AES-256 READY) ---'
+                          : '// --- DUMMY DECRYPTED PLAINTEXT PAYLOAD ---'}
+                      </p>
+                      <code className="text-cyan-300 whitespace-pre-wrap">{outputText}</code>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-10 text-slate-500 text-center font-mono">
+                      <Terminal className="w-8 h-8 mb-2 text-slate-600 opacity-60" />
+                      <p className="text-xs">Terminal siap. Belum ada keluaran data.</p>
+                      <p className="text-[10px] text-slate-600 mt-1">
+                        Ketik data & kata sandi di formulir, lalu klik tombol "Proses".
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Bottom Bar Info */}
                 <div className="px-4 py-2 bg-[#080D21] border-t border-blue-500/10 flex items-center justify-between text-[10px] font-mono text-slate-400">
-                  <span className="flex items-center gap-1.5 text-emerald-400">
+                  <span className={`flex items-center gap-1.5 ${outputText ? 'text-emerald-400' : 'text-slate-500'}`}>
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    STATUS: INTEGRITAS TERVALIDASI
+                    STATUS: {outputText ? 'PROSES BERHASIL (DUMMY)' : 'MENUNGGU PROSES'}
                   </span>
-                  <span>SIZE: 128 BYTES</span>
+                  <span>UKURAN: {new Blob([outputText]).size} BYTES</span>
                 </div>
               </div>
             </div>
 
-            {/* Cryptographic Telemetry Card (Mirip persis AI INSIGHTS di gambar referensi) */}
+            {/* Cryptographic Telemetry Card */}
             <div className="glass-panel-deep rounded-3xl p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-mono font-semibold tracking-wider text-slate-300 uppercase">
@@ -444,7 +577,7 @@ OpQrStUvWxYz0123456789+/0123456789ABCDEF==
                     <span className="text-emerald-400">↑ 99.8%</span>
                     <span className="text-xs text-slate-500 font-normal">vs Brute-Force</span>
                   </div>
-                  {/* Glowing SVG Waveform (mirip di gambar referensi) */}
+                  {/* Glowing SVG Waveform */}
                   <div className="pt-2">
                     <svg className="w-full h-10 overflow-visible" viewBox="0 0 160 40">
                       <defs>
@@ -465,10 +598,9 @@ OpQrStUvWxYz0123456789+/0123456789ABCDEF==
                   </div>
                 </div>
 
-                {/* Right side: Circular Donut Gauge (mirip skor 76 di gambar referensi) */}
+                {/* Right side: Circular Donut Gauge */}
                 <div className="flex flex-col items-center justify-center pl-4 border-l border-slate-800">
                   <div className="relative w-16 h-16 flex items-center justify-center">
-                    {/* Glowing outer ring */}
                     <div className="absolute inset-0 rounded-full border-4 border-slate-800" />
                     <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-pink-500 border-r-purple-500 border-b-cyan-400 animate-spin-slow rotate-45 shadow-[0_0_15px_rgba(236,72,153,0.4)]" />
                     <div className="text-center font-mono">
@@ -484,8 +616,8 @@ OpQrStUvWxYz0123456789+/0123456789ABCDEF==
               <div className="grid grid-cols-3 gap-2.5">
                 <div className="p-3 rounded-2xl bg-[#090F24]/80 border border-blue-500/10 text-center">
                   <span className="text-[10px] font-mono text-slate-400 block mb-0.5">ALGORITMA</span>
-                  <span className="text-xs font-bold text-cyan-300 font-mono">AES-256</span>
-                  <span className="text-[9px] text-slate-500 block">GCM Mode</span>
+                  <span className="text-xs font-bold text-cyan-300 font-mono">{selectedAlgo}</span>
+                  <span className="text-[9px] text-slate-500 block">Default Engine</span>
                 </div>
                 <div className="p-3 rounded-2xl bg-[#090F24]/80 border border-blue-500/10 text-center">
                   <span className="text-[10px] font-mono text-slate-400 block mb-0.5">INTEGRITAS</span>
@@ -493,14 +625,14 @@ OpQrStUvWxYz0123456789+/0123456789ABCDEF==
                   <span className="text-[9px] text-slate-500 block">SHA-256</span>
                 </div>
                 <div className="p-3 rounded-2xl bg-[#090F24]/80 border border-blue-500/10 text-center">
-                  <span className="text-[10px] font-mono text-slate-400 block mb-0.5">KOMPUTASI</span>
-                  <span className="text-xs font-bold text-amber-400 font-mono">0.18 ms</span>
-                  <span className="text-[9px] text-slate-500 block">Sub-millisecond</span>
+                  <span className="text-[10px] font-mono text-slate-400 block mb-0.5">STATUS INPUT</span>
+                  <span className="text-xs font-bold text-cyan-400 font-mono">{inputText.length > 0 ? 'READY' : 'EMPTY'}</span>
+                  <span className="text-[9px] text-slate-500 block">{inputText.length} Chars</span>
                 </div>
               </div>
             </div>
 
-            {/* Connected Vault Nodes (Mirip Connected Devices di gambar referensi) */}
+            {/* Connected Vault Nodes */}
             <div className="glass-panel-deep rounded-3xl p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-mono font-semibold tracking-wider text-slate-300 uppercase">
@@ -538,7 +670,7 @@ OpQrStUvWxYz0123456789+/0123456789ABCDEF==
 
         </div>
 
-        {/* ===================== CENTER ORB HUD (Mirip Elemen Utama di Bawah pada Gambar Referensi) ===================== */}
+        {/* ===================== CENTER ORB HUD ===================== */}
         <div className="mt-10 flex flex-col items-center justify-center text-center">
           <div className="relative flex items-center justify-center">
             {/* Horizontal Soundwave Bars on Left & Right */}
@@ -573,11 +705,11 @@ OpQrStUvWxYz0123456789+/0123456789ABCDEF==
 
       </main>
 
-      {/* ===================== FLOATING BOTTOM NAVIGATION DOCK (Mirip Dock Navigasi di Gambar Referensi) ===================== */}
+      {/* ===================== FLOATING BOTTOM NAVIGATION DOCK ===================== */}
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
         <div className="px-6 py-2.5 rounded-full bg-[#090E25]/85 backdrop-blur-2xl border border-blue-500/25 shadow-[0_10px_35px_rgba(0,0,0,0.8)] flex items-center gap-8">
           {/* Home Active Pill */}
-          <button className="flex flex-col items-center gap-1 text-cyan-400">
+          <button className="flex flex-col items-center gap-1 text-cyan-400 cursor-pointer">
             <div className="p-1.5 px-3 rounded-full bg-blue-600/30 border border-cyan-400/40 shadow-[0_0_15px_rgba(0,240,255,0.3)]">
               <Shield className="w-4 h-4 text-cyan-300" />
             </div>
@@ -585,26 +717,26 @@ OpQrStUvWxYz0123456789+/0123456789ABCDEF==
           </button>
 
           {/* Terminal Logs */}
-          <button className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition-colors">
+          <button className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer">
             <Terminal className="w-4 h-4" />
             <span className="text-[10px] font-mono">Logs</span>
           </button>
 
-          {/* Elevated Circular Center Button (Mirip AI Button di referensi) */}
-          <button className="relative -top-3 w-12 h-12 rounded-full p-[2px] bg-gradient-to-tr from-cyan-400 via-blue-500 to-purple-600 shadow-[0_0_25px_rgba(0,240,255,0.5)] transition-transform hover:scale-105 active:scale-95">
+          {/* Elevated Circular Center Button */}
+          <button className="relative -top-3 w-12 h-12 rounded-full p-[2px] bg-gradient-to-tr from-cyan-400 via-blue-500 to-purple-600 shadow-[0_0_25px_rgba(0,240,255,0.5)] transition-transform hover:scale-105 active:scale-95 cursor-pointer">
             <div className="w-full h-full rounded-full bg-[#050819] flex items-center justify-center">
               <span className="text-xs font-black font-mono tracking-widest text-cyan-300">NV</span>
             </div>
           </button>
 
           {/* Tools */}
-          <button className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition-colors">
+          <button className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer">
             <Sliders className="w-4 h-4" />
             <span className="text-[10px] font-mono">Tools</span>
           </button>
 
           {/* Keyring */}
-          <button className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition-colors">
+          <button className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer">
             <KeyRound className="w-4 h-4" />
             <span className="text-[10px] font-mono">Keys</span>
           </button>

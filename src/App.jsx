@@ -29,8 +29,10 @@ import {
   Layers,
   ArrowUpRight,
   Sliders,
-  AlertCircle
+  AlertCircle,
+  Image as ImageIcon
 } from 'lucide-react';
+import ImageCipher from './ImageCipher.jsx';
 
 export default function App() {
   // State Management sesuai instruksi
@@ -241,14 +243,33 @@ export default function App() {
             <Unlock className="w-3.5 h-3.5" />
             <span>Dekripsi Cipherteks</span>
           </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMode('imageCipher');
+              setError('');
+            }}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold font-mono transition-all duration-300 cursor-pointer ${
+              mode === 'imageCipher'
+                ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-[0_0_20px_rgba(0,240,255,0.6)] font-bold'
+                : 'text-slate-400 bg-transparent hover:text-slate-200 hover:bg-slate-800/40'
+            }`}
+          >
+            <ImageIcon className="w-3.5 h-3.5" />
+            <span>Visualizer Citra (ECB vs GCM)</span>
+          </button>
         </div>
       </header>
 
-      {/* Main Content Layout (Grid) */}
+      {/* Main Content Layout */}
       <main className="max-w-7xl mx-auto w-full px-6 py-6 flex-1">
         
-        {/* Top Mini Greetings Banner */}
-        <div className="mb-6 p-5 rounded-3xl glass-panel-deep flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden">
+        {mode === 'imageCipher' ? (
+          <ImageCipher />
+        ) : (
+          <>
+            {/* Top Mini Greetings Banner */}
+            <div className="mb-6 p-5 rounded-3xl glass-panel-deep flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden">
           <div className="space-y-1">
             <h2 className="text-xl font-bold text-white tracking-wide">
               Hello, Security Operator
@@ -893,6 +914,8 @@ export default function App() {
             <p className="text-xs text-slate-400">Zero-Knowledge Cryptographic Sandbox Ready</p>
           </div>
         </div>
+          </>
+        )}
 
       </main>
 
@@ -900,30 +923,47 @@ export default function App() {
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
         <div className="px-6 py-2.5 rounded-full bg-[#090E25]/85 backdrop-blur-2xl border border-blue-500/25 shadow-[0_10px_35px_rgba(0,0,0,0.8)] flex items-center gap-8">
           {/* Home Active Pill */}
-          <button className="flex flex-col items-center gap-1 text-cyan-400 cursor-pointer">
-            <div className="p-1.5 px-3 rounded-full bg-blue-600/30 border border-cyan-400/40 shadow-[0_0_15px_rgba(0,240,255,0.3)]">
-              <Shield className="w-4 h-4 text-cyan-300" />
+          <button 
+            type="button"
+            onClick={() => setMode('encrypt')}
+            className={`flex flex-col items-center gap-1 cursor-pointer transition-colors ${mode !== 'imageCipher' ? 'text-cyan-400' : 'text-slate-400 hover:text-slate-200'}`}
+          >
+            <div className={`p-1.5 px-3 rounded-full border transition-all ${mode !== 'imageCipher' ? 'bg-blue-600/30 border-cyan-400/40 shadow-[0_0_15px_rgba(0,240,255,0.3)]' : 'border-transparent'}`}>
+              <Shield className="w-4 h-4" />
             </div>
             <span className="text-[10px] font-mono font-medium">Vault</span>
           </button>
 
           {/* Terminal Logs */}
-          <button className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer">
+          <button 
+            type="button"
+            onClick={() => setMode('encrypt')}
+            className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+          >
             <Terminal className="w-4 h-4" />
             <span className="text-[10px] font-mono">Logs</span>
           </button>
 
           {/* Elevated Circular Center Button */}
-          <button className="relative -top-3 w-12 h-12 rounded-full p-[2px] bg-gradient-to-tr from-cyan-400 via-blue-500 to-purple-600 shadow-[0_0_25px_rgba(0,240,255,0.5)] transition-transform hover:scale-105 active:scale-95 cursor-pointer">
+          <button 
+            type="button"
+            onClick={() => setMode(mode === 'imageCipher' ? 'encrypt' : 'imageCipher')}
+            className="relative -top-3 w-12 h-12 rounded-full p-[2px] bg-gradient-to-tr from-cyan-400 via-blue-500 to-purple-600 shadow-[0_0_25px_rgba(0,240,255,0.5)] transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+            title="Toggle Visualizer Citra"
+          >
             <div className="w-full h-full rounded-full bg-[#050819] flex items-center justify-center">
               <span className="text-xs font-black font-mono tracking-widest text-cyan-300">NV</span>
             </div>
           </button>
 
-          {/* Tools */}
-          <button className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer">
+          {/* Tools / Citra Visualizer */}
+          <button 
+            type="button"
+            onClick={() => setMode('imageCipher')}
+            className={`flex flex-col items-center gap-1 cursor-pointer transition-colors ${mode === 'imageCipher' ? 'text-cyan-400' : 'text-slate-400 hover:text-slate-200'}`}
+          >
             <Sliders className="w-4 h-4" />
-            <span className="text-[10px] font-mono">Tools</span>
+            <span className="text-[10px] font-mono">Citra ECB</span>
           </button>
 
           {/* Keyring */}

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { encryptText, decryptText, encryptFile, decryptFile } from './crypto.js';
 import {
   Shield,
   ShieldCheck,
@@ -38,31 +39,104 @@ export default function App() {
   const [inputText, setInputText] = useState('');
   const [outputText, setOutputText] = useState('');
   const [error, setError] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [fileResult, setFileResult] = useState(null);
+  const fileInputRef = useRef(null);
+  const [isProcessingFile, setIsProcessingFile] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // State pendukung UX
   const [showPassword, setShowPassword] = useState(false);
   const [selectedAlgo, setSelectedAlgo] = useState('AES-GCM');
   const [copied, setCopied] = useState(false);
 
-  // Fungsi Sementara (Dummy) untuk memproses teks
-  const handleProcess = () => {
-    // Validasi: password minimal 6 karakter
+  
+  
+  // Fungsi untuk memproses enkripsi dan dekripsi teks maupun file
+  const handleProcess = async () => {
     if (!password || password.length < 6) {
-      setError('Kata sandi harus minimal 6 karakter!');
+      setError("Password minimal 6 karakter.");
       return;
     }
 
-    // Validasi: input teks tidak boleh kosong
-    if (!inputText.trim()) {
-      setError(`Silakan masukkan ${mode === 'encrypt' ? 'teks asli' : 'cipherteks'} yang ingin diproses!`);
-      return;
-    }
+    setError("");
+    setIsProcessing(true);
 
-    // Jika lolos validasi, bersihkan error
+    try {
+      // Jika ada file yang dipilih, proses file
+      if (selectedFile) {
+        let result;
+
+        if (mode === "encrypt") {
+          result = await encryptFile(selectedFile, password);
+        } else {
+          result = await decryptFile(selectedFile, password);
+        }
+
+        setFileResult(result);
+        setOutputText("");
+
+        return;
+      }
+
+      // Jika tidak ada file, proses teks
+      if (!inputText.trim()) {
+        setError("Masukkan teks atau pilih file terlebih dahulu.");
+        return;
+      }
+
+      if (mode === "encrypt") {
+        const result = await encryptText(inputText, password);
+        setOutputText(result);
+      } else {
+        const result = await decryptText(inputText, password);
+        setOutputText(result);
+      }
+
+      setFileResult(null);
+
+    } catch (err) {
+      console.error("ERROR ENKRIPSI/DEKRIPSI:", err);
+
+      setError(
+        err.message || "Terjadi kesalahan saat memproses data."
+      );
+
+      setOutputText("");
+      setFileResult(null);
+
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+    // Menghapus file yang sudah dipilih
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    setFileResult(null);
     setError('');
 
-    // Salin isi inputText ke outputText sebagai dummy output
-    setOutputText(inputText);
+    // Mengosongkan input file di browser
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Mengunduh hasil enkripsi atau file yang sudah didekripsi
+  const handleDownloadFile = () => {
+    if (!fileResult) return;
+
+    const url = URL.createObjectURL(fileResult.blob);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = fileResult.fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    // Melepaskan URL sementara setelah browser memproses download.
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   // Fungsi untuk menyalin isi output ke clipboard
@@ -73,12 +147,15 @@ export default function App() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Fungsi reset seluruh input & output
+  // Fungsi reset seluruh input & output 
   const handleReset = () => {
     setInputText('');
     setOutputText('');
     setPassword('');
     setError('');
+    setSelectedFile(null);
+    setFileResult(null);
+    setIsProcessing(false);
   };
 
   return (
@@ -396,6 +473,58 @@ export default function App() {
                   />
                 </div>
 
+                              
+                {/* Pemilihan file untuk enkripsi atau dekripsi */}
+                <div className="p-4 rounded-2xl bg-[#070C1F]/90 border border-cyan-500/20 space-y-3">
+                  <label className="text-xs font-mono font-medium text-slate-300 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-cyan-400" />
+                    {mode === 'encrypt'
+                      ? 'PILIH FILE UNTUK DIENKRIPSI'
+                      : 'PILIH FILE .NVAULT UNTUK DEKRIPSI'}
+                  </label>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={mode === 'decrypt' ? '.nvault' : undefined}
+                    onChange={(e) => {
+                      setSelectedFile(e.target.files?.[0] || null);
+                      setFileResult(null);
+                      setError('');
+                    }}
+                    className="w-full text-xs text-slate-300 file:mr-3 file:rounded-xl file:border-0 file:bg-cyan-900 file:px-4 file:py-2 file:text-cyan-200 hover:file:bg-cyan-800"
+                  />
+
+                  
+                  {selectedFile && (
+                    <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-cyan-950/40 border border-cyan-500/30">
+
+                      {/* Informasi file */}
+                      <div className="flex-1 min-w-0 text-xs font-mono">
+                        <p className="text-cyan-300 font-semibold break-all">
+                          {selectedFile.name}
+                        </p>
+
+                        <p className="text-slate-400 mt-1">
+                          Ukuran: {(selectedFile.size / 1024).toFixed(2)} KB
+                        </p>
+                      </div>
+
+                      {/* Tombol hapus pilihan file */}
+                      <button
+                        type="button"
+                        onClick={handleRemoveFile}
+                        className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg bg-rose-500/10 border border-rose-500/40 text-rose-400 hover:bg-rose-500 hover:text-white transition-all"
+                        title="Batalkan pilihan file"
+                        aria-label="Hapus file yang dipilih"
+                      >
+                        ×
+                      </button>
+
+                    </div>
+                  )}
+                </div>
+
                 {/* Security Parameter Toggles */}
                 <div className="p-3.5 rounded-2xl bg-[#070C1F]/90 border border-blue-500/15 space-y-2">
                   <label className="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer select-none">
@@ -416,13 +545,37 @@ export default function App() {
                   </label>
                 </div>
 
-                {/* 3. Tombol Proses dengan Pemicu handleProcess */}
+                {/* 3. Tombol Proses dengan Desain Neon */}
                 <button
-                  type="submit"
-                  className="w-full py-4 px-6 rounded-2xl font-mono text-sm font-bold tracking-wider uppercase text-white glow-btn-action flex items-center justify-center gap-3 transition-all duration-300 active:scale-[0.99] cursor-pointer"
+                  type="button"
+                  onClick={handleProcess}
+                  disabled={isProcessing}
+                  className={`w-full py-4 rounded-2xl font-mono text-sm font-bold tracking-[0.2em] transition-all duration-300 border cursor-pointer ${
+                    isProcessing
+                      ? 'bg-slate-800 border-slate-700 text-slate-400 cursor-wait'
+                      : 'bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 border-cyan-400/50 text-white shadow-[0_0_25px_rgba(0,240,255,0.25)] hover:shadow-[0_0_35px_rgba(0,240,255,0.5)] hover:scale-[1.01] active:scale-[0.98]'
+                  }`}
                 >
-                  <Cpu className="w-5 h-5 text-white animate-pulse" />
-                  <span>PROSES {mode === 'encrypt' ? 'ENKRIPSI TEKS' : 'DEKRIPSI CIPHERTEKS'}</span>
+                  <span className="flex items-center justify-center gap-3">
+                    {isProcessing ? (
+                      <>
+                        <RefreshCw className="w-5 h-5 animate-spin" />
+                        MEMPROSES DATA...
+                      </>
+                    ) : mode === 'encrypt' ? (
+                      <>
+                        <Lock className="w-5 h-5" />
+                        ENKRIPSI
+                        <ArrowUpRight className="w-4 h-4" />
+                      </>
+                    ) : (
+                      <>
+                        <Unlock className="w-5 h-5" />
+                        DEKRIPSI
+                        <ArrowUpRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </span>
                 </button>
               </form>
             </div>
@@ -520,37 +673,75 @@ export default function App() {
                     </span>
                   </div>
                   <span className="text-cyan-400">
-                    {mode === 'encrypt' ? 'FORMAT: CIPHER DUMMY' : 'FORMAT: UTF-8 PLAINTEXT'}
+                      {mode === 'encrypt'
+                      ? 'FORMAT: AES-GCM JSON'
+                      : 'FORMAT: UTF-8 PLAINTEXT'}
                   </span>
                 </div>
 
+                
                 {/* Output Stream Content */}
                 <div className="p-4 font-mono text-xs text-cyan-300 leading-relaxed break-all select-all min-h-[160px] bg-gradient-to-b from-transparent to-cyan-950/15">
-                  {outputText ? (
+
+                  {fileResult ? (
+                    <div className="space-y-4">
+                      <p className="text-emerald-400 text-[11px] mb-2">
+                        // --- FILE BERHASIL DIPROSES ---
+                      </p>
+
+                      <div className="p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/30 space-y-2">
+                        <p className="text-slate-400">Nama file hasil:</p>
+
+                        <p className="text-cyan-300 font-bold break-all">
+                          {fileResult.fileName}
+                        </p>
+
+                        <p className="text-emerald-400">
+                          File berhasil diproses dan siap diunduh.
+                        </p>
+
+                        <button
+                          type="button"
+                          onClick={handleDownloadFile}
+                          className="w-full mt-3 py-3 rounded-xl bg-emerald-700/80 border border-emerald-400/40 text-white text-xs font-mono font-bold hover:bg-emerald-600"
+                        >
+                          UNDUH HASIL FILE
+                        </button>
+                      </div>
+                    </div>
+                  ) : outputText ? (
                     <div>
                       <p className="text-slate-500 text-[11px] mb-2 font-mono">
                         {mode === 'encrypt'
-                          ? '// --- DUMMY CIPHERTEXT PAYLOAD (AES-256 READY) ---'
-                          : '// --- DUMMY DECRYPTED PLAINTEXT PAYLOAD ---'}
+                          ? '// --- AES-256-GCM ENCRYPTION RESULT ---'
+                          : '// --- AES-256-GCM DECRYPTION RESULT ---'}
                       </p>
-                      <code className="text-cyan-300 whitespace-pre-wrap">{outputText}</code>
+
+                      <code className="text-cyan-300 whitespace-pre-wrap">
+                        {outputText}
+                      </code>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-10 text-slate-500 text-center font-mono">
                       <Terminal className="w-8 h-8 mb-2 text-slate-600 opacity-60" />
-                      <p className="text-xs">Terminal siap. Belum ada keluaran data.</p>
+
+                      <p className="text-xs">
+                        Terminal siap. Belum ada keluaran data.
+                      </p>
+
                       <p className="text-[10px] text-slate-600 mt-1">
-                        Ketik data & kata sandi di formulir, lalu klik tombol "Proses".
+                        Ketik data atau pilih file, lalu klik tombol ENKRIPSI atau DEKRIPSI.
                       </p>
                     </div>
                   )}
+
                 </div>
 
                 {/* Bottom Bar Info */}
                 <div className="px-4 py-2 bg-[#080D21] border-t border-blue-500/10 flex items-center justify-between text-[10px] font-mono text-slate-400">
                   <span className={`flex items-center gap-1.5 ${outputText ? 'text-emerald-400' : 'text-slate-500'}`}>
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    STATUS: {outputText ? 'PROSES BERHASIL (DUMMY)' : 'MENUNGGU PROSES'}
+                    STATUS: {outputText ? 'PROSES BERHASIL' : 'MENUNGGU PROSES'}
                   </span>
                   <span>UKURAN: {new Blob([outputText]).size} BYTES</span>
                 </div>

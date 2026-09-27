@@ -416,6 +416,67 @@ export async function hmacText(text, secret) {
   return hashHex;
 }
 
+// ========================================
+// HMAC VERIFICATION
+// ========================================
+
+// Memeriksa apakah HMAC sesuai dengan pesan dan kunci rahasia.
+export async function verifyHmacText(text, secret, receivedHmac) {
+  if (!text || !text.trim()) {
+    throw new Error("Teks tidak boleh kosong.");
+  }
+
+  if (!secret || secret.length < 6) {
+    throw new Error("Kunci HMAC minimal 6 karakter.");
+  }
+
+  if (!receivedHmac || !receivedHmac.trim()) {
+    throw new Error("Kode HMAC yang akan diverifikasi harus diisi.");
+  }
+
+  // HMAC-SHA256 menghasilkan 32 byte atau 64 karakter hexadecimal.
+  const normalizedHmac = receivedHmac.trim().toLowerCase();
+
+  if (!/^[0-9a-f]{64}$/.test(normalizedHmac)) {
+    throw new Error("Format HMAC tidak valid. Masukkan 64 karakter hexadecimal.");
+  }
+
+  const encoder = new TextEncoder();
+
+  // Mengubah kunci rahasia menjadi byte.
+  const keyData = encoder.encode(secret);
+
+  // Mengimpor kunci dengan izin sign dan verify.
+  const key = await crypto.subtle.importKey(
+    "raw",
+    keyData,
+    {
+      name: "HMAC",
+      hash: "SHA-256"
+    },
+    false,
+    ["sign", "verify"]
+  );
+
+  // Mengubah pesan menjadi byte.
+  const data = encoder.encode(text);
+
+  // Mengubah HMAC hexadecimal menjadi byte.
+  const signatureBytes = new Uint8Array(
+    normalizedHmac.match(/.{2}/g).map(byte => parseInt(byte, 16))
+  );
+
+  // Memverifikasi HMAC menggunakan Web Crypto API.
+  const isValid = await crypto.subtle.verify(
+    "HMAC",
+    key,
+    signatureBytes,
+    data
+  );
+
+  return isValid;
+}
+
 /*
   NOVAVAULT - CHACHA20-POLY1305
   KDF: PBKDF2-SHA256

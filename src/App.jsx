@@ -8,12 +8,13 @@ import {
   decryptFile,
   hashText,
   hmacText,
+  verifyHmacText,
   encryptChaChaText,
   decryptChaChaText,
   generateRSAKeyPair,
   encryptRSAText,
   decryptRSAText
-} from './crypto.js';
+} from './crypto';
 import {
   Shield,
   ShieldCheck,
@@ -55,6 +56,10 @@ export default function App() {
   const [inputText, setInputText] = useState('');
   const [outputText, setOutputText] = useState('');
   const [error, setError] = useState('');
+  // State untuk fitur verifikasi HMAC
+  const [hmacToVerify, setHmacToVerify] = useState('');
+  const [hmacVerificationResult, setHmacVerificationResult] = useState(null);
+
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileResult, setFileResult] = useState(null);
   const fileInputRef = useRef(null);
@@ -339,6 +344,24 @@ export default function App() {
     }
   };
 
+  
+  // Memverifikasi HMAC yang diterima
+  const handleVerifyHmac = async () => {
+    setError('');
+    setHmacVerificationResult(null);
+
+    try {
+      const isValid = await verifyHmacText(
+        inputText,
+        password,
+        hmacToVerify
+      );
+
+      setHmacVerificationResult(isValid);
+    } catch (err) {
+      setError(err.message || 'Verifikasi HMAC gagal.');
+    }
+  };
     // Menghapus file yang sudah dipilih
   const handleRemoveFile = () => {
     setSelectedFile(null);
@@ -385,6 +408,47 @@ export default function App() {
     setSelectedFile(null);
     setFileResult(null);
     setIsProcessing(false);
+
+    setHmacToVerify('');
+    setHmacVerificationResult(null);
+  };
+  // Membuka fitur Key Generator
+  const handleShortcutKeyGenerator = async () => {
+    setSelectedAlgo('RSA-4096');
+    setMode('encrypt');
+    setError('');
+
+    await handleGenerateRSA();
+  };
+
+  // Mengarahkan pengguna ke fitur HMAC
+  const handleShortcutIntegrity = () => {
+    setSelectedAlgo('HMAC');
+    setMode('encrypt');
+    setError('');
+    setOutputText('');
+
+    alert(
+      'Mode HMAC dipilih. Masukkan pesan dan password, lalu klik ENKRIPSI untuk menghasilkan kode autentikasi.'
+    );
+  };
+
+  // Membersihkan data pada aplikasi
+  const handleZeroize = () => {
+    handleReset();
+
+    setRsaPublicKey('');
+    setRsaPrivateKey('');
+    setIsGeneratingRSA(false);
+    setCopied(false);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+
+    alert(
+      'Data input, output, password, dan kunci RSA pada state aplikasi telah dibersihkan.'
+    );
   };
 
   return (
@@ -863,7 +927,55 @@ export default function App() {
                     className="w-full glass-input-deep rounded-2xl p-4 text-sm text-slate-200 placeholder-slate-500 focus:outline-none font-mono resize-none leading-relaxed transition-all"
                   />
                 </div>
+                
+                
+                {/* PANEL VERIFIKASI HMAC */}
+                {selectedAlgo === 'HMAC' && (
+                  <div className="p-4 rounded-2xl bg-[#070C1F]/90 border border-cyan-500/20 space-y-3">
 
+                    <h4 className="text-sm font-bold text-cyan-300 font-mono">
+                      HMAC INTEGRITY VERIFICATION
+                    </h4>
+
+                    <p className="text-xs text-slate-400">
+                      Masukkan kode HMAC yang diterima untuk memeriksa
+                      apakah pesan masih sesuai dan belum diubah.
+                    </p>
+
+                    <textarea
+                      rows={4}
+                      value={hmacToVerify}
+                      onChange={(e) => {
+                        setHmacToVerify(e.target.value);
+                        setHmacVerificationResult(null);
+                        setError('');
+                      }}
+                      placeholder="Tempelkan kode HMAC-SHA256 di sini..."
+                      className="w-full glass-input-deep rounded-xl p-3 text-xs text-cyan-200 font-mono"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={handleVerifyHmac}
+                      className="w-full py-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-mono font-bold"
+                    >
+                      VERIFIKASI HMAC
+                    </button>
+
+                    {hmacVerificationResult === true && (
+                      <div className="p-3 rounded-xl bg-emerald-950/50 border border-emerald-500/40 text-emerald-300 text-xs font-mono">
+                        BERHASIL: HMAC valid. Pesan cocok dengan kode autentikasi.
+                      </div>
+                    )}
+
+                    {hmacVerificationResult === false && (
+                      <div className="p-3 rounded-xl bg-rose-950/50 border border-rose-500/40 text-rose-300 text-xs font-mono">
+                        GAGAL: HMAC tidak cocok. Pesan, kunci, atau kode autentikasi mungkin berbeda.
+                      </div>
+                    )}
+
+                  </div>
+                )}
                               
                 {/* Pemilihan file untuk enkripsi atau dekripsi */}
                 <div className="p-4 rounded-2xl bg-[#070C1F]/90 border border-cyan-500/20 space-y-3">
@@ -970,41 +1082,97 @@ export default function App() {
                 </button>
               </form>
             </div>
-
             {/* Smart Shortcuts Card */}
             <div className="glass-panel-deep rounded-3xl p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-mono font-semibold tracking-wider text-slate-300 uppercase">
                   Security Shortcuts
                 </span>
-                <span className="text-[11px] text-slate-500">Fast Actions</span>
+                <span className="text-[11px] text-slate-500">
+                  Fast Actions
+                </span>
               </div>
 
               <div className="space-y-2">
-                {[
-                  { title: 'Key Generator 4096-bit', sub: 'Generate high-entropy salt & IV', icon: KeyRound },
-                  { title: 'Integrity Check Assistant', sub: 'Verify HMAC against payload tamper', icon: ShieldCheck },
-                  { title: 'Zeroize Memory RAM', sub: 'Wipe all cryptographic states securely', icon: Zap },
-                ].map((item, idx) => {
-                  const ItemIcon = item.icon;
-                  return (
-                    <div
-                      key={idx}
-                      className="p-3 rounded-2xl bg-[#090F24]/80 border border-blue-500/10 hover:border-cyan-500/30 flex items-center justify-between cursor-pointer transition-all duration-200 group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-xl bg-blue-500/10 text-cyan-400 group-hover:bg-cyan-500/20 group-hover:text-cyan-300 transition-colors">
-                          <ItemIcon className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <div className="text-xs font-semibold text-slate-200">{item.title}</div>
-                          <div className="text-[10px] text-slate-400">{item.sub}</div>
-                        </div>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-cyan-400 transition-colors" />
+
+                {/* KEY GENERATOR */}
+                <button
+                  type="button"
+                  onClick={handleShortcutKeyGenerator}
+                  disabled={isGeneratingRSA}
+                  className="w-full text-left p-3 rounded-2xl bg-[#090F24]/80 border border-blue-500/10 hover:border-cyan-500/30 flex items-center justify-between cursor-pointer transition-all duration-200 group disabled:opacity-50"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-blue-500/10 text-cyan-400 group-hover:bg-cyan-500/20 transition-colors">
+                      <KeyRound className="w-4 h-4" />
                     </div>
-                  );
-                })}
+
+                    <div>
+                      <div className="text-xs font-semibold text-slate-200">
+                        {isGeneratingRSA
+                          ? 'Generating RSA Key Pair...'
+                          : 'Key Generator 4096-bit'}
+                      </div>
+
+                      <div className="text-[10px] text-slate-400">
+                        Generate RSA public and private keys
+                      </div>
+                    </div>
+                  </div>
+
+                  <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-cyan-400" />
+                </button>
+
+                {/* INTEGRITY CHECK */}
+                <button
+                  type="button"
+                  onClick={handleShortcutIntegrity}
+                  className="w-full text-left p-3 rounded-2xl bg-[#090F24]/80 border border-blue-500/10 hover:border-cyan-500/30 flex items-center justify-between cursor-pointer transition-all duration-200 group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-blue-500/10 text-cyan-400 group-hover:bg-cyan-500/20 transition-colors">
+                      <ShieldCheck className="w-4 h-4" />
+                    </div>
+
+                    <div>
+                      <div className="text-xs font-semibold text-slate-200">
+                        Integrity Check Assistant
+                      </div>
+
+                      <div className="text-[10px] text-slate-400">
+                        Open HMAC authentication tool
+                      </div>
+                    </div>
+                  </div>
+
+                  <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-cyan-400" />
+                </button>
+
+                {/* ZEROIZE */}
+                <button
+                  type="button"
+                  onClick={handleZeroize}
+                  className="w-full text-left p-3 rounded-2xl bg-[#090F24]/80 border border-blue-500/10 hover:border-rose-500/30 flex items-center justify-between cursor-pointer transition-all duration-200 group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-rose-500/10 text-rose-400 group-hover:bg-rose-500/20 transition-colors">
+                      <Zap className="w-4 h-4" />
+                    </div>
+
+                    <div>
+                      <div className="text-xs font-semibold text-slate-200">
+                        Zeroize Memory RAM
+                      </div>
+
+                      <div className="text-[10px] text-slate-400">
+                        Clear application inputs and key states
+                      </div>
+                    </div>
+                  </div>
+
+                  <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-rose-400" />
+                </button>
+
               </div>
             </div>
 

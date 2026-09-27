@@ -1,3 +1,5 @@
+import RestApiCipher from './RestApiCipher';
+import HybridCipher from './HybridCipher';
 import React, { useState, useRef } from 'react';
 import { encryptText, decryptText, encryptFile, decryptFile } from './crypto.js';
 import {
@@ -258,6 +260,36 @@ export default function App() {
             <ImageIcon className="w-3.5 h-3.5" />
             <span>Visualizer Citra (ECB vs GCM)</span>
           </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMode('hybrid');
+              setError('');
+            }}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold font-mono transition-all duration-300 cursor-pointer ${
+              mode === 'hybrid'
+                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-[0_0_20px_rgba(255,0,255,0.6)] font-bold'
+                : 'text-slate-400 bg-transparent hover:text-slate-200 hover:bg-slate-800/40'
+            }`}
+          >
+            <Lock className="w-3.5 h-3.5" />
+            <span>Enkripsi Hibrida</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setMode('restApi');
+              setError('');
+            }}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold font-mono transition-all duration-200 ${
+              mode === 'restApi'
+                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-[0_0_20px_rgba(16,185,129,0.6)] font-bold'
+                : 'text-slate-400 bg-transparent hover:text-slate-200 hover:bg-slate-800/40'
+            }`}
+          >
+            <span>🌐 REST API (JWT HS512)</span>
+          </button>
         </div>
       </header>
 
@@ -266,6 +298,10 @@ export default function App() {
         
         {mode === 'imageCipher' ? (
           <ImageCipher />
+        ) : mode === 'hybrid' ? (
+          <HybridCipher />
+        ) : mode === 'restApi' ? (
+          <RestApiCipher />
         ) : (
           <>
             {/* Top Mini Greetings Banner */}

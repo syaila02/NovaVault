@@ -1,7 +1,19 @@
 import RestApiCipher from './RestApiCipher';
 import HybridCipher from './HybridCipher';
 import React, { useState, useRef } from 'react';
-import { encryptText, decryptText, encryptFile, decryptFile } from './crypto.js';
+import {
+  encryptText,
+  decryptText,
+  encryptFile,
+  decryptFile,
+  hashText,
+  hmacText,
+  encryptChaChaText,
+  decryptChaChaText,
+  generateRSAKeyPair,
+  encryptRSAText,
+  decryptRSAText
+} from './crypto.js';
 import {
   Shield,
   ShieldCheck,
@@ -53,13 +65,144 @@ export default function App() {
   const [showPassword, setShowPassword] = useState(false);
   const [selectedAlgo, setSelectedAlgo] = useState('AES-GCM');
   const [copied, setCopied] = useState(false);
+  // State untuk RSA-4096
+  const [rsaPublicKey, setRsaPublicKey] = useState('');
+  const [rsaPrivateKey, setRsaPrivateKey] = useState('');
+  const [isGeneratingRSA, setIsGeneratingRSA] = useState(false);
 
   
+  // Membuat pasangan kunci RSA-4096
+  const handleGenerateRSA = async () => {
+    setError('');
+    setOutputText('');
+    setFileResult(null);
+    setIsGeneratingRSA(true);
+
+    try {
+      const keyPair = await generateRSAKeyPair();
+
+      setRsaPublicKey(
+        JSON.stringify(keyPair.publicKey, null, 2)
+      );
+
+      setRsaPrivateKey(
+        JSON.stringify(keyPair.privateKey, null, 2)
+      );
+
+      setSelectedFile(null);
+
+    } catch (err) {
+      console.error('ERROR GENERATE RSA:', err);
+
+      setError(
+        err.message || 'Gagal membuat pasangan kunci RSA.'
+      );
+    } finally {
+      setIsGeneratingRSA(false);
+    }
+  };
   
   // Fungsi untuk memproses enkripsi dan dekripsi teks maupun file
   const handleProcess = async () => {
+
+    // PROSES RSA-4096
+    if (selectedAlgo === "RSA-4096") {
+      setError('');
+      setIsProcessing(true);
+
+      try {
+        if (selectedFile) {
+          throw new Error(
+            "RSA saat ini hanya mendukung input teks."
+          );
+        }
+
+        if (!inputText.trim()) {
+          throw new Error("Masukkan teks yang ingin diproses.");
+        }
+
+        let result;
+
+        if (mode === "encrypt") {
+          if (!rsaPublicKey) {
+            throw new Error(
+              "Buat pasangan kunci RSA terlebih dahulu."
+            );
+          }
+
+          let publicKey;
+
+          try {
+            publicKey = JSON.parse(rsaPublicKey);
+          } catch {
+            throw new Error("Format public key tidak valid.");
+          }
+
+          result = await encryptRSAText(
+            inputText,
+            publicKey
+          );
+
+        } else {
+          if (!rsaPrivateKey) {
+            throw new Error(
+              "Private key RSA belum tersedia. Buat atau masukkan pasangan kunci yang sesuai."
+            );
+          }
+
+          let privateKey;
+
+          try {
+            privateKey = JSON.parse(rsaPrivateKey);
+          } catch {
+            throw new Error("Format private key tidak valid.");
+          }
+
+          result = await decryptRSAText(
+            inputText,
+            privateKey
+          );
+        }
+
+        setOutputText(result);
+        setFileResult(null);
+
+        return;
+
+      } catch (err) {
+        console.error("ERROR RSA:", err);
+
+        setError(
+          err.message || "Terjadi kesalahan saat memproses RSA."
+        );
+
+        setOutputText("");
+        setFileResult(null);
+
+      } finally {
+        setIsProcessing(false);
+      }
+
+      return;
+    }
+
+    // VALIDASI PASSWORD UNTUK ALGORITMA SIMETRIS
     if (!password || password.length < 6) {
       setError("Password minimal 6 karakter.");
+      return;
+    }
+    if (
+      selectedAlgo !== "AES-GCM" &&
+      selectedAlgo !== "ChaCha20" &&
+      selectedAlgo !== "RSA-4096" &&
+      selectedAlgo !== "SHA-512" &&
+      selectedAlgo !== "HMAC"
+    ) {
+      setError(
+        `Algoritma ${selectedAlgo} belum tersedia.`
+      );
+      setOutputText("");
+      setFileResult(null);
       return;
     }
 
@@ -67,6 +210,88 @@ export default function App() {
     setIsProcessing(true);
 
     try {
+        // PROSES SHA-512
+      if (selectedAlgo === "SHA-512") {
+        if (mode !== "encrypt") {
+          throw new Error(
+            "SHA-512 adalah hash satu arah dan tidak mendukung dekripsi."
+          );
+        }
+
+        if (selectedFile) {
+          throw new Error(
+            "SHA-512 saat ini hanya mendukung input teks."
+          );
+        }
+
+        if (!inputText.trim()) {
+          throw new Error("Masukkan teks yang ingin di-hash.");
+        }
+
+        const result = await hashText(inputText);
+
+        setOutputText(result);
+        setFileResult(null);
+
+        return;
+      }
+      if (selectedAlgo === "HMAC") {
+        if (mode !== "encrypt") {
+          throw new Error(
+            "HMAC adalah autentikasi satu arah dan tidak mendukung dekripsi."
+          );
+        }
+
+        if (selectedFile) {
+          throw new Error(
+            "HMAC saat ini hanya mendukung input teks."
+          );
+        }
+
+        if (!inputText.trim()) {
+          throw new Error("Masukkan teks yang ingin diautentikasi.");
+        }
+
+        const result = await hmacText(inputText, password);
+
+        setOutputText(result);
+        setFileResult(null);
+
+        return;
+      }
+      // PROSES CHACHA20-POLY1305
+      if (selectedAlgo === "ChaCha20") {
+        if (selectedFile) {
+          throw new Error(
+            "ChaCha20 saat ini hanya mendukung input teks."
+          );
+        }
+
+        if (!inputText.trim()) {
+          throw new Error(
+            "Masukkan teks yang ingin diproses."
+          );
+        }
+
+        let result;
+
+        if (mode === "encrypt") {
+          result = await encryptChaChaText(
+            inputText,
+            password
+          );
+        } else {
+          result = await decryptChaChaText(
+            inputText,
+            password
+          );
+        }
+
+        setOutputText(result);
+        setFileResult(null);
+
+        return;
+      }
       // Jika ada file yang dipilih, proses file
       if (selectedFile) {
         let result;
@@ -364,26 +589,52 @@ export default function App() {
                   { id: 'RSA-4096', name: 'RSA-4096', desc: 'Asymmetric Key', icon: KeyRound },
                   { id: 'SHA-512', name: 'SHA-512', desc: 'Integrity Digest', icon: Cpu },
                   { id: 'HMAC', name: 'HMAC-SHA', desc: 'Message Auth', icon: Zap },
-                  { id: 'PBKDF2', name: 'PBKDF2', desc: 'Key Derivation', icon: Layers },
+                  { id: 'PBKDF2', name: 'PBKDF2', desc: 'Used by AES-GCM', icon: Layers },
                 ].map((tool) => {
                   const IconComp = tool.icon;
                   const isSelected = selectedAlgo === tool.id;
+                  const isInfoOnly = tool.id === 'PBKDF2';
+
                   return (
                     <button
                       key={tool.id}
                       type="button"
-                      onClick={() => setSelectedAlgo(tool.id)}
-                      className={`p-3 rounded-2xl flex flex-col items-center justify-center text-center transition-all duration-300 cursor-pointer ${
-                        isSelected
-                          ? 'bg-gradient-to-b from-cyan-500/20 to-blue-600/20 border border-cyan-400 shadow-[0_0_15px_rgba(0,240,255,0.25)]'
-                          : 'bg-[#090F24]/80 border border-blue-500/10 hover:border-blue-500/30 text-slate-400 hover:text-slate-200'
+                      disabled={isInfoOnly}
+                      title={
+                        isInfoOnly
+                          ? 'PBKDF2 digunakan secara internal untuk derivasi kunci AES-GCM.'
+                          : `Pilih ${tool.name}`
+                      }
+                      onClick={() => {
+                        if (isInfoOnly) return;
+                        setSelectedAlgo(tool.id);
+                        setError('');
+                      }}
+                      className={`p-3 rounded-2xl flex flex-col items-center justify-center text-center transition-all duration-300 ${
+                        isInfoOnly
+                          ? 'bg-[#090F24]/50 border border-blue-500/10 opacity-60 cursor-not-allowed'
+                          : isSelected
+                            ? 'bg-gradient-to-b from-cyan-500/20 to-blue-600/20 border border-cyan-400 shadow-[0_0_15px_rgba(0,240,255,0.25)] cursor-pointer'
+                            : 'bg-[#090F24]/80 border border-blue-500/10 hover:border-blue-500/30 text-slate-400 hover:text-slate-200 cursor-pointer'
                       }`}
                     >
-                      <div className={`p-2 rounded-xl mb-1.5 ${isSelected ? 'bg-cyan-500/30 text-cyan-300' : 'bg-slate-900 text-slate-400'}`}>
+                      <div
+                        className={`p-2 rounded-xl mb-1.5 ${
+                          isSelected
+                            ? 'bg-cyan-500/30 text-cyan-300'
+                            : 'bg-slate-900 text-slate-400'
+                        }`}
+                      >
                         <IconComp className="w-4 h-4" />
                       </div>
-                      <span className="text-xs font-bold text-slate-200">{tool.name}</span>
-                      <span className="text-[9px] text-slate-400 font-mono">{tool.desc}</span>
+
+                      <span className="text-xs font-bold text-slate-200">
+                        {tool.name}
+                      </span>
+
+                      <span className="text-[9px] text-slate-400 font-mono">
+                        {tool.desc}
+                      </span>
                     </button>
                   );
                 })}
@@ -501,7 +752,90 @@ export default function App() {
                     </span>
                   </div>
                 </div>
+                {/* PANEL RSA-4096 */}
+                {selectedAlgo === 'RSA-4096' && (
+                  <div className="p-4 rounded-2xl bg-[#070C1F]/90 border border-cyan-500/20 space-y-4">
 
+                    <div>
+                      <h4 className="text-sm font-bold text-cyan-300 font-mono">
+                        RSA-4096 KEY GENERATOR
+                      </h4>
+                      <p className="text-xs text-slate-400 mt-1">
+                        Buat pasangan public key dan private key untuk
+                        enkripsi serta dekripsi.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleGenerateRSA}
+                      disabled={isGeneratingRSA}
+                      className="w-full py-3 rounded-xl bg-cyan-700 hover:bg-cyan-600 disabled:opacity-50 text-white text-xs font-mono font-bold"
+                    >
+                      {isGeneratingRSA
+                        ? 'MEMBUAT KUNCI RSA...'
+                        : 'GENERATE RSA-4096 KEY PAIR'}
+                    </button>
+
+                    {rsaPublicKey && (
+                      <div className="space-y-2">
+                        <label className="text-xs text-emerald-300 font-mono">
+                          PUBLIC KEY (BOLEH DIBAGIKAN)
+                        </label>
+
+                        <textarea
+                          rows={5}
+                          value={rsaPublicKey}
+                          onChange={(e) => setRsaPublicKey(e.target.value)}
+                          className="w-full glass-input-deep rounded-xl p-3 text-xs text-emerald-200 font-mono"
+                          spellCheck={false}
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            navigator.clipboard.writeText(rsaPublicKey)
+                          }
+                          className="px-3 py-2 rounded-lg bg-emerald-900/60 text-emerald-300 text-xs"
+                        >
+                          Salin Public Key
+                        </button>
+                      </div>
+                    )}
+
+                    {rsaPrivateKey && (
+                      <div className="space-y-2">
+                        <label className="text-xs text-rose-300 font-mono">
+                          PRIVATE KEY (RAHASIA - JANGAN DIBAGIKAN)
+                        </label>
+
+                        <textarea
+                          rows={6}
+                          value={rsaPrivateKey}
+                          onChange={(e) => setRsaPrivateKey(e.target.value)}
+                          className="w-full glass-input-deep rounded-xl p-3 text-xs text-rose-200 font-mono"
+                          spellCheck={false}
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            navigator.clipboard.writeText(rsaPrivateKey)
+                          }
+                          className="px-3 py-2 rounded-lg bg-rose-950/60 text-rose-300 text-xs"
+                        >
+                          Salin Private Key
+                        </button>
+
+                        <p className="text-[11px] text-rose-300">
+                          Simpan private key secara aman. Jangan kirim
+                          atau unggah private key ke orang lain.
+                        </p>
+                      </div>
+                    )}
+
+                  </div>
+                )}
                 {/* 2. Textarea Data / Payload dengan Binding State */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
@@ -769,9 +1103,21 @@ export default function App() {
                   ) : outputText ? (
                     <div>
                       <p className="text-slate-500 text-[11px] mb-2 font-mono">
-                        {mode === 'encrypt'
-                          ? '// --- AES-256-GCM ENCRYPTION RESULT ---'
-                          : '// --- AES-256-GCM DECRYPTION RESULT ---'}
+                        {selectedAlgo === 'SHA-512'
+                          ? '// --- SHA-512 HASH RESULT ---'
+                          : selectedAlgo === 'HMAC'
+                            ? '// --- HMAC-SHA256 AUTHENTICATION RESULT ---'
+                            : selectedAlgo === 'RSA-4096'
+                              ? mode === 'encrypt'
+                                ? '// --- RSA-4096 ENCRYPTION RESULT ---'
+                                : '// --- RSA-4096 DECRYPTION RESULT ---'
+                                : selectedAlgo === 'ChaCha20'
+                                  ? mode === 'encrypt'
+                                    ? '// --- CHACHA20-POLY1305 ENCRYPTION RESULT ---'
+                                    : '// --- CHACHA20-POLY1305 DECRYPTION RESULT ---'
+                                  : mode === 'encrypt'
+                                    ? '// --- AES-256-GCM ENCRYPTION RESULT ---'
+                                    : '// --- AES-256-GCM DECRYPTION RESULT ---'}
                       </p>
 
                       <code className="text-cyan-300 whitespace-pre-wrap">

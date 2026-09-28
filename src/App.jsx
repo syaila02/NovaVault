@@ -1496,11 +1496,11 @@ export default function App() {
             <span className="text-[10px] font-mono font-medium">Vault</span>
           </button>
 
-          {/* Terminal Logs */}
+          {/* Terminal Logs / Testing */}
           <button 
             type="button"
-            onClick={() => setMode('encrypt')}
-            className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+            onClick={() => setMode('testDashboard')}
+            className={`flex flex-col items-center gap-1 cursor-pointer transition-colors ${mode === 'testDashboard' ? 'text-cyan-400' : 'text-slate-400 hover:text-slate-200'}`}
           >
             <Terminal className="w-4 h-4" />
             <span className="text-[10px] font-mono">Logs</span>
@@ -1529,7 +1529,11 @@ export default function App() {
           </button>
 
           {/* Keyring */}
-          <button className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer">
+          <button 
+            type="button"
+            onClick={() => setMode('hybrid')}
+            className={`flex flex-col items-center gap-1 cursor-pointer transition-colors ${mode === 'hybrid' ? 'text-cyan-400' : 'text-slate-400 hover:text-slate-200'}`}
+          >
             <KeyRound className="w-4 h-4" />
             <span className="text-[10px] font-mono">Keys</span>
           </button>

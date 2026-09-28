@@ -1,5 +1,6 @@
 import RestApiCipher from './RestApiCipher';
 import HybridCipher from './HybridCipher';
+import TestDashboard from './TestDashboard';
 import React, { useState, useRef } from 'react';
 import {
   encryptText,
@@ -558,6 +559,15 @@ export default function App() {
               >
                 <ShieldCheck className="w-3.5 h-3.5" /> Enkripsi Hibrida
               </button>
+              <button
+                type="button"
+                onClick={() => { setMode('testDashboard'); setError(''); }}
+                className={`flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold font-mono transition-all duration-300 mt-1 ${
+                  mode === 'testDashboard' ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <Activity className="w-3.5 h-3.5" /> Dashboard Pengujian
+              </button>
             </div>
           </div>
 
@@ -591,6 +601,8 @@ export default function App() {
           <HybridCipher />
         ) : mode === 'restApi' ? (
           <RestApiCipher />
+        ) : mode === 'testDashboard' ? (
+          <TestDashboard />
         ) : (
           <>
             {/* Top Mini Greetings Banner */}

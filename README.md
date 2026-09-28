@@ -1,5 +1,10 @@
 # NovaVault — Dokumentasi Teknis & Panduan Operasional Sistem
 
+**Anggota Kelompok:**
+1. Syaila Zahwa (NPM: 247006111180)
+2. Auliya Nadya (NPM: 247006111200)
+3. Aam Aminah (NPM: 247006111205)
+
 Dokumentasi ini memuat spesifikasi teknis, panduan instalasi, prosedur penggunaan fitur, serta tata cara eksekusi pengujian otomatis untuk proyek **NovaVault (Topik A: Aplikasi Enkripsi Algoritma Modern)**.
 
 * **URL Aplikasi (Live Demo):** [https://nova-vault-cyan.vercel.app](https://nova-vault-cyan.vercel.app)

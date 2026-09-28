@@ -6,8 +6,9 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Secret Key khusus HMAC-SHA512
-const JWT_SECRET = 'NovaVault_HMAC_SHA512_Secret_Key_2026';
+// Secret Key khusus HMAC-SHA512 (Diambil dari Environment Variables)
+// Jika di Vercel belum diset, otomatis bikin kunci acak agar tidak error (aman dari hardcode)
+const JWT_SECRET = process.env.JWT_SECRET || require('crypto').randomBytes(64).toString('hex');
 
 // 1. Endpoint Menerbitkan JWT HMAC-SHA512 (HS512)
 app.post('/api/auth/login', (req, res) => {

@@ -11,7 +11,7 @@ export default function RestApiCipher() {
   const handleGetToken = async () => {
     setLoadingToken(true);
     try {
-      const res = await fetch('https://novavault-backend.vercel.app/api/auth/login', {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username })
@@ -32,7 +32,7 @@ export default function RestApiCipher() {
     if (!token) return alert('Dapatkan Token JWT terlebih dahulu!');
     setLoadingApi(true);
     try {
-      const res = await fetch('https://novavault-backend.vercel.app/api/vault/process', {
+      const res = await fetch('/api/vault/process', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

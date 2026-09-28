@@ -45,7 +45,8 @@ import {
   ArrowUpRight,
   Sliders,
   AlertCircle,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Globe
 } from 'lucide-react';
 import ImageCipher from './ImageCipher.jsx';
 
@@ -502,83 +503,82 @@ export default function App() {
           </div>
         </div>
 
-        {/* Interaktivitas Tab: Enkripsi Teks & Dekripsi Cipherteks */}
-        <div className="flex items-center p-1.5 rounded-2xl bg-[#090E24]/90 border border-blue-500/20 shadow-inner">
-          <button
-            type="button"
-            onClick={() => {
-              setMode('encrypt');
-              setError('');
-            }}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold font-mono transition-all duration-300 cursor-pointer ${
-              mode === 'encrypt'
-                ? 'bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.6)] font-bold'
-                : 'text-slate-400 bg-transparent hover:text-slate-200 hover:bg-slate-800/40'
-            }`}
-          >
-            <Lock className="w-3.5 h-3.5" />
-            <span>Enkripsi Teks</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setMode('decrypt');
-              setError('');
-            }}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold font-mono transition-all duration-300 cursor-pointer ${
-              mode === 'decrypt'
-                ? 'bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.6)] font-bold'
-                : 'text-slate-400 bg-transparent hover:text-slate-200 hover:bg-slate-800/40'
-            }`}
-          >
-            <Unlock className="w-3.5 h-3.5" />
-            <span>Dekripsi Cipherteks</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setMode('imageCipher');
-              setError('');
-            }}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold font-mono transition-all duration-300 cursor-pointer ${
-              mode === 'imageCipher'
-                ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-[0_0_20px_rgba(0,240,255,0.6)] font-bold'
-                : 'text-slate-400 bg-transparent hover:text-slate-200 hover:bg-slate-800/40'
-            }`}
-          >
-            <ImageIcon className="w-3.5 h-3.5" />
-            <span>Visualizer Citra (ECB vs GCM)</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setMode('hybrid');
-              setError('');
-            }}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold font-mono transition-all duration-300 cursor-pointer ${
-              mode === 'hybrid'
-                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-[0_0_20px_rgba(255,0,255,0.6)] font-bold'
-                : 'text-slate-400 bg-transparent hover:text-slate-200 hover:bg-slate-800/40'
-            }`}
-          >
-            <Lock className="w-3.5 h-3.5" />
-            <span>Enkripsi Hibrida</span>
-          </button>
+        {/* Interaktivitas Tab: Dropdown Menu Style */}
+        <div className="flex items-center gap-3">
+          {/* Group 1: Core Cryptography */}
+          <div className="relative group z-50">
+            <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold font-mono text-slate-300 hover:text-white bg-[#090E24]/90 border border-blue-500/20 shadow-inner transition-all hover:border-cyan-500/50 hover:shadow-[0_0_15px_rgba(0,240,255,0.2)]">
+              <Shield className="w-4 h-4 text-blue-400" />
+              <span>Core Vault</span>
+            </button>
+            <div className="absolute top-full left-0 mt-2 hidden group-hover:flex flex-col w-52 p-2 rounded-2xl bg-[#070C1E]/95 border border-blue-500/30 shadow-[0_10px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-all">
+              <button
+                type="button"
+                onClick={() => { setMode('encrypt'); setError(''); }}
+                className={`flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold font-mono transition-all duration-300 ${
+                  mode === 'encrypt' ? 'bg-blue-600/20 text-cyan-300 border border-blue-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <Lock className="w-3.5 h-3.5" /> Enkripsi Teks
+              </button>
+              <button
+                type="button"
+                onClick={() => { setMode('decrypt'); setError(''); }}
+                className={`flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold font-mono transition-all duration-300 mt-1 ${
+                  mode === 'decrypt' ? 'bg-blue-600/20 text-cyan-300 border border-blue-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <Unlock className="w-3.5 h-3.5" /> Dekripsi Cipherteks
+              </button>
+            </div>
+          </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              setMode('restApi');
-              setError('');
-            }}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold font-mono transition-all duration-200 ${
-              mode === 'restApi'
-                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-[0_0_20px_rgba(16,185,129,0.6)] font-bold'
-                : 'text-slate-400 bg-transparent hover:text-slate-200 hover:bg-slate-800/40'
-            }`}
-          >
-            <span>🌐 REST API (JWT HS512)</span>
-          </button>
+          {/* Group 2: Advanced Tools */}
+          <div className="relative group z-50">
+            <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold font-mono text-slate-300 hover:text-white bg-[#090E24]/90 border border-blue-500/20 shadow-inner transition-all hover:border-purple-500/50 hover:shadow-[0_0_15px_rgba(168,85,247,0.2)]">
+              <Layers className="w-4 h-4 text-purple-400" />
+              <span>Advanced Tools</span>
+            </button>
+            <div className="absolute top-full left-0 mt-2 hidden group-hover:flex flex-col w-60 p-2 rounded-2xl bg-[#070C1E]/95 border border-purple-500/30 shadow-[0_10px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-all">
+              <button
+                type="button"
+                onClick={() => { setMode('imageCipher'); setError(''); }}
+                className={`flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold font-mono transition-all duration-300 ${
+                  mode === 'imageCipher' ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <ImageIcon className="w-3.5 h-3.5" /> Visualizer Citra
+              </button>
+              <button
+                type="button"
+                onClick={() => { setMode('hybrid'); setError(''); }}
+                className={`flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold font-mono transition-all duration-300 mt-1 ${
+                  mode === 'hybrid' ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5" /> Enkripsi Hibrida
+              </button>
+            </div>
+          </div>
+
+          {/* Group 3: API & Network */}
+          <div className="relative group z-50">
+            <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold font-mono text-slate-300 hover:text-white bg-[#090E24]/90 border border-blue-500/20 shadow-inner transition-all hover:border-emerald-500/50 hover:shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+              <Activity className="w-4 h-4 text-emerald-400" />
+              <span>API Services</span>
+            </button>
+            <div className="absolute top-full right-0 mt-2 hidden group-hover:flex flex-col w-56 p-2 rounded-2xl bg-[#070C1E]/95 border border-emerald-500/30 shadow-[0_10px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-all">
+              <button
+                type="button"
+                onClick={() => { setMode('restApi'); setError(''); }}
+                className={`flex text-left items-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold font-mono transition-all duration-300 ${
+                  mode === 'restApi' ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <Globe className="w-3.5 h-3.5" /> REST API (JWT HS512)
+              </button>
+            </div>
+          </div>
         </div>
       </header>
 

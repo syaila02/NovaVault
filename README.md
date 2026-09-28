@@ -3,7 +3,7 @@
 Dokumentasi ini memuat spesifikasi teknis, panduan instalasi, prosedur penggunaan fitur, serta tata cara eksekusi pengujian otomatis untuk proyek **NovaVault (Topik A: Aplikasi Enkripsi Algoritma Modern)**.
 
 * **URL Aplikasi (Live Demo):** [https://nova-vault-cyan.vercel.app](https://nova-vault-cyan.vercel.app)
-* **Teknologi Utama:** React 18, Vite 6, Tailwind CSS, Native Web Crypto API, Playwright Test Suite.
+* **Teknologi Utama:** React 18, Vite 6, Tailwind CSS, Native Web Crypto API, Node.js/Express (Serverless Backend), Vercel.
 
 ---
 
@@ -27,17 +27,25 @@ git clone https://github.com/syaila02/NovaVault.git
 cd NovaVault
 ```
 
-### Langkah 2: Instalasi Dependensi
-Jalankan perintah berikut untuk mengunduh seluruh pustaka yang dibutuhkan:
+### Langkah 2: Instalasi Dependensi (Frontend & Backend)
+Jalankan perintah berikut untuk mengunduh seluruh pustaka yang dibutuhkan untuk Frontend dan Backend:
 ```bash
 npm install
+cd backend
+npm install
+cd ..
 ```
 
 ### Langkah 3: Menjalankan Server Lokal
-Mulai server pengembangan:
-```bash
-npm run dev
-```
+Buka **dua terminal terpisah** di VSCode Anda:
+1. **Terminal 1 (Backend API):**
+   ```bash
+   node backend/server.js
+   ```
+2. **Terminal 2 (Frontend UI):**
+   ```bash
+   npm run dev
+   ```
 
 ### Langkah 4: Akses Aplikasi
 Buka peramban (*web browser*) dan arahkan ke alamat:
@@ -50,7 +58,7 @@ http://localhost:3000
 ## 3. Panduan Penggunaan Fitur
 
 ### 3.1. Enkripsi Teks (Mode Utama)
-1. Pilih tab **"Enkripsi Teks"** pada bilah navigasi atas.
+1. Arahkan kursor ke menu dropdown **"Core Vault"** di bilah navigasi atas, lalu klik **"Enkripsi Teks"**.
 2. Masukkan kata sandi rahasia pada field *Master Passphrase* (minimal 6 karakter).
 3. Ketik atau tempelkan teks yang akan diamankan pada kotak *Plaintext*.
 4. Klik tombol **"ENKRIPSI"**.
@@ -58,7 +66,7 @@ http://localhost:3000
 6. Klik tombol **"Salin Output"** untuk menyalin data.
 
 ### 3.2. Dekripsi Teks
-1. Pilih tab **"Dekripsi Cipherteks"** pada bilah navigasi atas.
+1. Arahkan kursor ke menu dropdown **"Core Vault"** di bilah navigasi atas, lalu klik **"Dekripsi Cipherteks"**.
 2. Masukkan kata sandi yang sama persis dengan yang digunakan saat enkripsi.
 3. Tempelkan paket JSON ciphertext ke dalam kolom input.
 4. Klik tombol **"DEKRIPSI"**.
@@ -77,7 +85,7 @@ http://localhost:3000
   4. Klik tombol **"DEKRIPSI"**, lalu klik **"UNDUH HASIL FILE"** untuk mendapatkan kembali berkas asli secara utuh.
 
 ### 3.4. Visualisasi Kerentanan Citra (ECB vs AES-GCM) — *Fitur Pengayaan 1*
-1. Pilih tab **"Visualizer Citra (ECB vs GCM)"** pada header navigasi.
+1. Arahkan kursor ke menu dropdown **"Advanced Tools"**, lalu pilih **"Visualizer Citra (ECB vs GCM)"**.
 2. Pilih gambar sampel: **"🐧 Sampel Tux Penguin"**, **"🛡️ Logo Shield"**, atau klik **"Upload Citra"** untuk memilih foto sendiri.
 3. Masukkan kata sandi pada kolom kunci sesi citra.
 4. Klik tombol **"JALANKAN ENKRIPSI CITRA (ECB vs GCM)"**.
@@ -154,8 +162,8 @@ Saat pelaksanaan demo presentasi di depan dosen/asisten lab, ikuti urutan operas
 
 ---
 
-## 7. Catatan Pembaruan & Integrasi Fitur Selanjutnya
+## 7. Pembaruan Terbaru (Update)
 
-Bagian ini disiapkan untuk dokumentasi penambahan fitur oleh anggota kelompok selanjutnya:
-* **Fitur Pengayaan Ke-2 (JWT HMAC-SHA512):** Implementasi token otentikasi sesi brankas berbasis paper riset dosen pengampu (Rahmatulloh dkk., 2018).
-* **Evaluasi Algoritma Pembanding:** Penambahan implementasi AES-CBC sebagai pembanding performa dan keamanan terhadap AES-GCM.
+* **Serverless RESTful API & Vercel Integration:** Frontend dan Backend sekarang telah disatukan dalam satu repositori (*monorepo*) dan di-deploy bersandingan sebagai Vercel Serverless Function menggunakan konfigurasi `vercel.json`. API Backend dapat diakses melalui endpoint relatif `/api/*`.
+* **Redesign UI & Dropdown Menu:** Tampilan navigasi (*header*) telah dirombak menjadi lebih minimalis menggunakan desain *glassmorphism* berbentuk Dropdown Menu yang dikelompokkan ke dalam 3 kategori utama (Core Vault, Advanced Tools, dan API Services).
+* **Fitur Pengayaan Ke-2 (JWT HMAC-SHA512):** Implementasi token otentikasi sesi brankas berbasis JWT menggunakan *algoritma hashing* HMAC-SHA512. Anda dapat menguji pertukaran token ini dengan memilih menu Dropdown **"API Services"** -> **"REST API (JWT HS512)"**.

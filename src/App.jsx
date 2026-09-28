@@ -62,6 +62,18 @@ export default function App() {
   const [hmacToVerify, setHmacToVerify] = useState('');
   const [hmacVerificationResult, setHmacVerificationResult] = useState(null);
 
+  // Jam Real-time
+  const [currentTime, setCurrentTime] = useState(
+    new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+  );
+
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileResult, setFileResult] = useState(null);
   const fileInputRef = useRef(null);
@@ -463,7 +475,7 @@ export default function App() {
       {/* Top Futuristic Status Bar */}
       <div className="max-w-7xl mx-auto w-full px-6 pt-3 flex items-center justify-between text-xs text-slate-400 font-mono">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-slate-200">12:45</span>
+          <span className="font-semibold text-slate-200">{currentTime}</span>
           <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
           <span className="text-[11px] text-cyan-400/80">SECURE VAULT OS</span>
         </div>
@@ -1478,6 +1490,17 @@ export default function App() {
         </div>
           </>
         )}
+
+        {/* ===================== FOOTER ===================== */}
+        <footer className="mt-16 py-6 border-t border-blue-500/10 flex flex-col items-center justify-center gap-2 text-center">
+          <div className="flex items-center gap-2 text-slate-400 font-mono text-[10px]">
+            <Shield className="w-3.5 h-3.5 text-cyan-500" />
+            <span>&copy; {new Date().getFullYear()} NOVAVAULT CORE. All rights reserved.</span>
+          </div>
+          <p className="text-[9px] text-slate-600 font-mono">
+            Advanced Cryptography Final Project | AES-256-GCM & ChaCha20-Poly1305
+          </p>
+        </footer>
 
       </main>
 

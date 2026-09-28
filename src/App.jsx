@@ -524,10 +524,10 @@ export default function App() {
               <Shield className="w-4 h-4 text-blue-400" />
               <span>Core Vault</span>
             </button>
-            <div className="absolute top-full left-0 mt-2 hidden group-hover:flex flex-col w-52 p-2 rounded-2xl bg-[#070C1E]/95 border border-blue-500/30 shadow-[0_10px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-all">
+            <div className="absolute top-full left-0 mt-2 hidden group-hover:flex flex-col w-52 p-2 rounded-2xl bg-[#070C1E]/95 border border-blue-500/30 shadow-[0_10px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-all before:absolute before:-top-2 before:left-0 before:w-full before:h-2">
               <button
                 type="button"
-                onClick={() => { setMode('encrypt'); setError(''); }}
+                onMouseDown={() => { setMode('encrypt'); setError(''); }}
                 className={`flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold font-mono transition-all duration-300 ${
                   mode === 'encrypt' ? 'bg-blue-600/20 text-cyan-300 border border-blue-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                 }`}
@@ -536,7 +536,7 @@ export default function App() {
               </button>
               <button
                 type="button"
-                onClick={() => { setMode('decrypt'); setError(''); }}
+                onMouseDown={() => { setMode('decrypt'); setError(''); }}
                 className={`flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold font-mono transition-all duration-300 mt-1 ${
                   mode === 'decrypt' ? 'bg-blue-600/20 text-cyan-300 border border-blue-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                 }`}
@@ -552,10 +552,10 @@ export default function App() {
               <Layers className="w-4 h-4 text-purple-400" />
               <span>Advanced Tools</span>
             </button>
-            <div className="absolute top-full left-0 mt-2 hidden group-hover:flex flex-col w-60 p-2 rounded-2xl bg-[#070C1E]/95 border border-purple-500/30 shadow-[0_10px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-all">
+            <div className="absolute top-full left-0 mt-2 hidden group-hover:flex flex-col w-60 p-2 rounded-2xl bg-[#070C1E]/95 border border-purple-500/30 shadow-[0_10px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-all before:absolute before:-top-2 before:left-0 before:w-full before:h-2">
               <button
                 type="button"
-                onClick={() => { setMode('imageCipher'); setError(''); }}
+                onMouseDown={() => { setMode('imageCipher'); setError(''); }}
                 className={`flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold font-mono transition-all duration-300 ${
                   mode === 'imageCipher' ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                 }`}
@@ -564,7 +564,7 @@ export default function App() {
               </button>
               <button
                 type="button"
-                onClick={() => { setMode('hybrid'); setError(''); }}
+                onMouseDown={() => { setMode('hybrid'); setError(''); }}
                 className={`flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold font-mono transition-all duration-300 mt-1 ${
                   mode === 'hybrid' ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                 }`}
@@ -573,7 +573,7 @@ export default function App() {
               </button>
               <button
                 type="button"
-                onClick={() => { setMode('testDashboard'); setError(''); }}
+                onMouseDown={() => { setMode('testDashboard'); setError(''); }}
                 className={`flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold font-mono transition-all duration-300 mt-1 ${
                   mode === 'testDashboard' ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                 }`}
@@ -589,10 +589,10 @@ export default function App() {
               <Activity className="w-4 h-4 text-emerald-400" />
               <span>API Services</span>
             </button>
-            <div className="absolute top-full right-0 mt-2 hidden group-hover:flex flex-col w-56 p-2 rounded-2xl bg-[#070C1E]/95 border border-emerald-500/30 shadow-[0_10px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-all">
+            <div className="absolute top-full right-0 mt-2 hidden group-hover:flex flex-col w-56 p-2 rounded-2xl bg-[#070C1E]/95 border border-emerald-500/30 shadow-[0_10px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-all before:absolute before:-top-2 before:left-0 before:w-full before:h-2">
               <button
                 type="button"
-                onClick={() => { setMode('restApi'); setError(''); }}
+                onMouseDown={() => { setMode('restApi'); setError(''); }}
                 className={`flex text-left items-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold font-mono transition-all duration-300 ${
                   mode === 'restApi' ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                 }`}

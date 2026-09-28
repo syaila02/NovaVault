@@ -60,7 +60,12 @@ app.post('/api/vault/process', verifyJWT, (req, res) => {
   });
 });
 
-const PORT = 5000;
-app.listen(PORT, () => {
-  console.log(`Server RESTful API NovaVault berjalan di http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = 5000;
+  app.listen(PORT, () => {
+    console.log(`Server RESTful API NovaVault berjalan di http://localhost:${PORT}`);
+  });
+}
+
+// Ekspor app agar bisa dijalankan oleh Serverless Function Vercel
+module.exports = app;

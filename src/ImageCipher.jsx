@@ -35,6 +35,11 @@ export default function ImageCipher() {
     const w = canvas.width;
     const h = canvas.height;
 
+    if (type === 'custom') {
+      clearOutputCanvases();
+      return;
+    }
+
     // Bersihkan canvas dengan latar belakang putih pekat
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, w, h);

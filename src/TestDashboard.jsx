@@ -129,7 +129,7 @@ export default function TestDashboard() {
         const origBytes = new Uint8Array(fileBytes); 
         
         if (fileBytes.length > 0) fileBytes[0] ^= 1; 
-        const modFile = new File([fileBytes], inputFile.name, { type: inputFile.type });
+        const modFile = new window.File([fileBytes], inputFile.name, { type: inputFile.type });
         const modEncResult = await encryptFile(modFile, password);
         
         const getCipherBytes = async (blob) => {

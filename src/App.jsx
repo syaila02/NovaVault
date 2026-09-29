@@ -563,24 +563,24 @@ export default function App() {
               <Shield className="w-4 h-4 text-blue-400" />
               <span>Core Vault</span>
             </button>
-            <div className="absolute top-full left-0 mt-2 hidden group-hover:flex flex-col w-52 p-2 rounded-2xl bg-[#070C1E]/95 border border-blue-500/30 shadow-[0_10px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-all before:absolute before:-top-2 before:left-0 before:w-full before:h-2">
+            <div className="absolute top-full left-0 mt-2 hidden group-hover:flex flex-col w-56 p-2 rounded-2xl bg-[#070C1E]/95 border border-blue-500/30 shadow-[0_10px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-all before:absolute before:-top-2 before:left-0 before:w-full before:h-2">
               <button
                 type="button"
                 onMouseDown={() => { setMode('encrypt'); setError(''); }}
-                className={`flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold font-mono transition-all duration-300 ${
+                className={`flex justify-start items-center gap-3 px-4 py-3 w-full rounded-xl text-xs font-semibold font-mono transition-all duration-300 ${
                   mode === 'encrypt' ? 'bg-blue-600/20 text-cyan-300 border border-blue-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                 }`}
               >
-                <Lock className="w-3.5 h-3.5" /> Enkripsi Teks
+                <Lock className="w-4 h-4 shrink-0" /> <span className="text-left">Enkripsi Teks</span>
               </button>
               <button
                 type="button"
                 onMouseDown={() => { setMode('decrypt'); setError(''); }}
-                className={`flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold font-mono transition-all duration-300 mt-1 ${
+                className={`flex justify-start items-center gap-3 px-4 py-3 w-full rounded-xl text-xs font-semibold font-mono transition-all duration-300 mt-1 ${
                   mode === 'decrypt' ? 'bg-blue-600/20 text-cyan-300 border border-blue-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                 }`}
               >
-                <Unlock className="w-3.5 h-3.5" /> Dekripsi Cipherteks
+                <Unlock className="w-4 h-4 shrink-0" /> <span className="text-left">Dekripsi Cipherteks</span>
               </button>
             </div>
           </div>
@@ -1646,64 +1646,7 @@ export default function App() {
 
       </main>
 
-      {/* ===================== FLOATING BOTTOM NAVIGATION DOCK ===================== */}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
-        <div className="px-6 py-2.5 rounded-full bg-[#090E25]/85 backdrop-blur-2xl border border-blue-500/25 shadow-[0_10px_35px_rgba(0,0,0,0.8)] flex items-center gap-8">
-          {/* Home Active Pill */}
-          <button 
-            type="button"
-            onClick={() => setMode('encrypt')}
-            className={`flex flex-col items-center gap-1 cursor-pointer transition-colors ${mode !== 'imageCipher' ? 'text-cyan-400' : 'text-slate-400 hover:text-slate-200'}`}
-          >
-            <div className={`p-1.5 px-3 rounded-full border transition-all ${mode !== 'imageCipher' ? 'bg-blue-600/30 border-cyan-400/40 shadow-[0_0_15px_rgba(0,240,255,0.3)]' : 'border-transparent'}`}>
-              <Shield className="w-4 h-4" />
-            </div>
-            <span className="text-[10px] font-mono font-medium">Vault</span>
-          </button>
 
-          {/* Terminal Logs / Testing */}
-          <button 
-            type="button"
-            onClick={() => setMode('testDashboard')}
-            className={`flex flex-col items-center gap-1 cursor-pointer transition-colors ${mode === 'testDashboard' ? 'text-cyan-400' : 'text-slate-400 hover:text-slate-200'}`}
-          >
-            <Terminal className="w-4 h-4" />
-            <span className="text-[10px] font-mono">Logs</span>
-          </button>
-
-          {/* Elevated Circular Center Button */}
-          <button 
-            type="button"
-            onClick={() => setMode(mode === 'imageCipher' ? 'encrypt' : 'imageCipher')}
-            className="relative -top-3 w-12 h-12 rounded-full p-[2px] bg-gradient-to-tr from-cyan-400 via-blue-500 to-purple-600 shadow-[0_0_25px_rgba(0,240,255,0.5)] transition-transform hover:scale-105 active:scale-95 cursor-pointer"
-            title="Toggle Visualizer Citra"
-          >
-            <div className="w-full h-full rounded-full bg-[#050819] flex items-center justify-center">
-              <span className="text-xs font-black font-mono tracking-widest text-cyan-300">NV</span>
-            </div>
-          </button>
-
-          {/* Tools / Citra Visualizer */}
-          <button 
-            type="button"
-            onClick={() => setMode('imageCipher')}
-            className={`flex flex-col items-center gap-1 cursor-pointer transition-colors ${mode === 'imageCipher' ? 'text-cyan-400' : 'text-slate-400 hover:text-slate-200'}`}
-          >
-            <Sliders className="w-4 h-4" />
-            <span className="text-[10px] font-mono">Citra ECB</span>
-          </button>
-
-          {/* Keyring */}
-          <button 
-            type="button"
-            onClick={() => setMode('hybrid')}
-            className={`flex flex-col items-center gap-1 cursor-pointer transition-colors ${mode === 'hybrid' ? 'text-cyan-400' : 'text-slate-400 hover:text-slate-200'}`}
-          >
-            <KeyRound className="w-4 h-4" />
-            <span className="text-[10px] font-mono">Keys</span>
-          </button>
-        </div>
-      </div>
 
     </div>
   );

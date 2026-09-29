@@ -76,7 +76,7 @@ export default function HybridCipher() {
           </div>
         </div>
 
-        <h2 className="text-2xl font-extrabold text-white tracking-wide flex items-center gap-3">
+        <h2 className="text-xl font-bold font-mono text-white tracking-wide flex flex-wrap items-center gap-2">
           <span>Enkripsi Hibrida Kriptografi:</span>
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]">
             RSA-OAEP 2048-bit + AES-256-GCM

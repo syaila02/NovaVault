@@ -57,7 +57,7 @@ export default function RestApiCipher() {
             RESTFUL API & JWT HMAC-SHA512 (HS512)
           </span>
         </div>
-        <h2 className="text-2xl font-extrabold text-white tracking-wide flex items-center gap-3">
+        <h2 className="text-xl font-bold font-mono text-white tracking-wide flex flex-wrap items-center gap-2">
           <span>Layanan REST API Terproteksi Token</span>
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">
             HMAC-SHA512

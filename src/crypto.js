@@ -717,3 +717,172 @@ export async function decryptRSAText(
 
   return new TextDecoder().decode(decrypted);
 }
+// ========================================
+// CRYPTOGRAPHIC INSIGHTS ANALYSIS
+// ========================================
+
+// Menghitung jumlah bit yang berbeda antara dua hasil hash.
+function calculateBitDifference(hash1, hash2) {
+  let differentBits = 0;
+
+  for (let i = 0; i < hash1.length; i++) {
+    let value = hash1[i] ^ hash2[i];
+
+    while (value > 0) {
+      differentBits += value & 1;
+      value >>= 1;
+    }
+  }
+
+  const totalBits = hash1.length * 8;
+
+  return (differentBits / totalBits) * 100;
+}
+
+// Menghitung Shannon entropy berdasarkan frekuensi byte.
+function calculateShannonEntropy(bytes) {
+  if (bytes.length === 0) return 0;
+
+  const frequencies = new Array(256).fill(0);
+
+  for (const byte of bytes) {
+    frequencies[byte]++;
+  }
+
+  let entropy = 0;
+
+  for (const frequency of frequencies) {
+    if (frequency === 0) continue;
+
+    const probability = frequency / bytes.length;
+
+    entropy -= probability * Math.log2(probability);
+  }
+
+  return entropy;
+}
+
+// Membuat histogram 16 kelompok berdasarkan digit heksadesimal pertama.
+function calculateByteHistogram(bytes) {
+  const histogram = new Array(16).fill(0);
+
+  for (const byte of bytes) {
+    histogram[Math.floor(byte / 16)]++;
+  }
+
+  return histogram;
+}
+
+// Menganalisis hasil kriptografi yang sudah dibuat.
+export async function analyzeCryptoInsights(
+  inputText,
+  outputText,
+  selectedAlgo,
+  password
+) {
+  if (!inputText || !outputText) {
+    return null;
+  }
+
+  let analyzedBytes = [];
+  let avalanchePercent = null;
+
+  // AES-GCM: analisis byte ciphertext asli dari paket JSON.
+  if (selectedAlgo === "AES-GCM") {
+    try {
+      const packageData = JSON.parse(outputText);
+
+      if (!packageData.ciphertext) {
+        return null;
+      }
+
+      analyzedBytes = Array.from(
+        fromBase64(packageData.ciphertext)
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  // SHA-512: analisis hasil hash dan avalanche effect.
+  else if (selectedAlgo === "SHA-512") {
+    const encoder = new TextEncoder();
+
+    const originalBytes = encoder.encode(inputText);
+
+    // Ubah satu bit pada byte pertama input.
+    const modifiedBytes = new Uint8Array(originalBytes);
+
+    modifiedBytes[0] ^= 1;
+
+    const originalHash = new Uint8Array(
+      await crypto.subtle.digest("SHA-512", originalBytes)
+    );
+
+    const modifiedHash = new Uint8Array(
+      await crypto.subtle.digest("SHA-512", modifiedBytes)
+    );
+
+    avalanchePercent = calculateBitDifference(
+      originalHash,
+      modifiedHash
+    );
+
+    analyzedBytes = Array.from(originalHash);
+  }
+
+  // HMAC: analisis HMAC dan avalanche effect.
+  else if (selectedAlgo === "HMAC") {
+    if (!password) return null;
+
+    const encoder = new TextEncoder();
+
+    const originalBytes = encoder.encode(inputText);
+    const modifiedBytes = new Uint8Array(originalBytes);
+
+    modifiedBytes[0] ^= 1;
+
+    const key = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(password),
+      {
+        name: "HMAC",
+        hash: "SHA-256"
+      },
+      false,
+      ["sign"]
+    );
+
+    const originalHmac = new Uint8Array(
+      await crypto.subtle.sign(
+        "HMAC",
+        key,
+        originalBytes
+      )
+    );
+
+    const modifiedHmac = new Uint8Array(
+      await crypto.subtle.sign(
+        "HMAC",
+        key,
+        modifiedBytes
+      )
+    );
+
+    avalanchePercent = calculateBitDifference(
+      originalHmac,
+      modifiedHmac
+    );
+
+    analyzedBytes = Array.from(originalHmac);
+  } else {
+    return null;
+  }
+
+  return {
+    entropy: calculateShannonEntropy(analyzedBytes),
+    histogram: calculateByteHistogram(analyzedBytes),
+    avalanchePercent,
+    bytesAnalyzed: analyzedBytes.length
+  };
+}

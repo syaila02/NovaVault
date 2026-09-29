@@ -1,7 +1,7 @@
 import RestApiCipher from './RestApiCipher';
 import HybridCipher from './HybridCipher';
 import TestDashboard from './TestDashboard';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   encryptText,
   decryptText,
@@ -9,6 +9,7 @@ import {
   decryptFile,
   hashText,
   hmacText,
+  analyzeCryptoInsights,
   verifyHmacText,
   encryptChaChaText,
   decryptChaChaText,
@@ -84,6 +85,8 @@ export default function App() {
   const [showPassword, setShowPassword] = useState(false);
   const [selectedAlgo, setSelectedAlgo] = useState('AES-GCM');
   const [copied, setCopied] = useState(false);
+  const [analysisData, setAnalysisData] = useState(null);
+
   // State untuk RSA-4096
   const [rsaPublicKey, setRsaPublicKey] = useState('');
   const [rsaPrivateKey, setRsaPrivateKey] = useState('');
@@ -464,7 +467,43 @@ export default function App() {
       'Data input, output, password, dan kunci RSA pada state aplikasi telah dibersihkan.'
     );
   };
+    
+  // Memperbarui analisis ketika output kriptografi berubah.
+  useEffect(() => {
+    let isActive = true;
 
+    const runAnalysis = async () => {
+      if (!inputText || !outputText || fileResult) {
+        setAnalysisData(null);
+        return;
+      }
+
+      try {
+        const result = await analyzeCryptoInsights(
+          inputText,
+          outputText,
+          selectedAlgo,
+          password
+        );
+
+        if (isActive) {
+          setAnalysisData(result);
+        }
+      } catch (err) {
+        console.error("Gagal menganalisis output:", err);
+
+        if (isActive) {
+          setAnalysisData(null);
+        }
+      }
+    };
+
+    runAnalysis();
+
+    return () => {
+      isActive = false;
+    };
+  }, [inputText, outputText, selectedAlgo, password, fileResult]);
   return (
     <div className="min-h-screen bg-[#050713] text-slate-100 flex flex-col justify-between selection:bg-cyan-400 selection:text-black relative pb-28">
       {/* Background Cosmic Atmosphere & Nebula Glows */}
@@ -646,8 +685,8 @@ export default function App() {
             <div className="px-4 py-2 rounded-2xl bg-cyan-950/60 border border-cyan-500/30 flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-cyan-400" />
               <div className="text-left font-mono">
-                <div className="text-[10px] text-slate-400">SECURITY RATING</div>
-                <div className="text-xs font-bold text-cyan-300">256-BIT QUANTUM READY</div>
+                <div className="text-[10px] text-slate-400">SECURITY OVERVIEW</div>
+                <div className="text-xs font-bold text-cyan-300">MULTI-ALGORITHM CRYPTOGRAPHY</div>
               </div>
             </div>
           </div>
@@ -1054,21 +1093,16 @@ export default function App() {
 
                 {/* Security Parameter Toggles */}
                 <div className="p-3.5 rounded-2xl bg-[#070C1F]/90 border border-blue-500/15 space-y-2">
-                  <label className="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer select-none">
+                  <label className="flex items-center gap-2.5 text-xs text-slate-300">
                     <input
                       type="checkbox"
-                      defaultChecked
-                      className="w-4 h-4 rounded bg-slate-900 border-cyan-500/40 text-cyan-500 focus:ring-0 accent-cyan-400"
+                      checked
+                      disabled
+                      className="w-4 h-4 accent-cyan-400"
                     />
-                    <span>Sertakan Authentication Tag 128-bit (Integritas Terjamin)</span>
-                  </label>
-                  <label className="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      defaultChecked
-                      className="w-4 h-4 rounded bg-slate-900 border-cyan-500/40 text-cyan-500 focus:ring-0 accent-cyan-400"
-                    />
-                    <span>Bersihkan Buffer Memori (Anti Memory-Dump)</span>
+                    <span>
+                      Authentication Tag 128-bit — Aktif otomatis pada AES-GCM
+                    </span>
                   </label>
                 </div>
 
@@ -1343,113 +1377,221 @@ export default function App() {
               </div>
             </div>
 
-            {/* Cryptographic Telemetry Card */}
-            <div className="glass-panel-deep rounded-3xl p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-semibold tracking-wider text-slate-300 uppercase">
-                  Cryptographic Insights
-                </span>
-                <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full">
-                  LIVE TELEMETRY
+            {/* Cryptographic Insights */}
+            <div className="glass-panel-deep rounded-3xl p-4 sm:p-5 lg:p-6 space-y-5">
+
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <span className="text-xs font-mono font-semibold tracking-wider text-slate-300 uppercase">
+                    Cryptographic Insights
+                  </span>
+
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    Cryptographic analysis based on actual output data
+                  </p>
+                </div>
+
+                <span className={`w-fit text-[10px] font-mono px-3 py-1.5 rounded-full border ${
+                  analysisData
+                    ? 'text-emerald-400 bg-emerald-950/40 border-emerald-500/30'
+                    : 'text-slate-400 bg-slate-900/60 border-slate-700'
+                }`}>
+                  {analysisData ? 'ANALYSIS READY' : 'WAITING FOR DATA'}
                 </span>
               </div>
 
-              {/* Waveform line and Donut Score */}
-              <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-[#080E24]/80 border border-blue-500/10">
-                {/* Left side: Waveform chart line */}
-                <div className="space-y-1 flex-1">
-                  <span className="text-[11px] text-slate-400 font-mono">Entropy Resistance</span>
-                  <div className="flex items-center gap-1.5 text-sm font-bold text-white font-mono">
-                    <span className="text-emerald-400">↑ 99.8%</span>
-                    <span className="text-xs text-slate-500 font-normal">vs Brute-Force</span>
-                  </div>
-                  {/* Glowing SVG Waveform */}
-                  <div className="pt-2">
-                    <svg className="w-full h-10 overflow-visible" viewBox="0 0 160 40">
-                      <defs>
-                        <linearGradient id="cyberWave" x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="#8B5CF6" />
-                          <stop offset="50%" stopColor="#38BDF8" />
-                          <stop offset="100%" stopColor="#00F0FF" />
-                        </linearGradient>
-                      </defs>
-                      <path
-                        d="M0,25 Q20,5 40,25 T80,25 T120,10 T160,20"
-                        fill="none"
-                        stroke="url(#cyberWave)"
-                        strokeWidth="2.5"
-                        className="drop-shadow-[0_0_8px_rgba(0,240,255,0.7)]"
+              {!analysisData ? (
+                <div className="p-6 sm:p-8 rounded-2xl border border-dashed border-slate-700 text-center">
+                  <Activity className="w-8 h-8 text-slate-500 mx-auto mb-3" />
+
+                  <p className="text-sm font-semibold text-slate-300">
+                    No analysis available
+                  </p>
+
+                  <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                    Jalankan enkripsi AES-GCM, SHA-512, atau HMAC
+                    untuk melihat hasil analisis kriptografi.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* Entropy Analysis */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-[#080E24]/80 border border-cyan-500/15 space-y-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-bold text-white">
+                          Shannon Entropy
+                        </p>
+
+                        <p className="text-[10px] text-slate-500 mt-1">
+                          Entropy of analyzed bytes
+                        </p>
+                      </div>
+
+                      <Activity className="w-5 h-5 text-cyan-400 shrink-0" />
+                    </div>
+
+                    <div className="flex items-end gap-2">
+                      <span className="text-3xl sm:text-4xl font-bold font-mono text-cyan-300">
+                        {analysisData.entropy.toFixed(3)}
+                      </span>
+
+                      <span className="text-xs text-slate-500 mb-1">
+                        bits / byte
+                      </span>
+                    </div>
+
+                    <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-300"
+                        style={{
+                          width: `${(analysisData.entropy / 8) * 100}%`
+                        }}
                       />
-                    </svg>
-                  </div>
-                </div>
+                    </div>
 
-                {/* Right side: Circular Donut Gauge */}
-                <div className="flex flex-col items-center justify-center pl-4 border-l border-slate-800">
-                  <div className="relative w-16 h-16 flex items-center justify-center">
-                    <div className="absolute inset-0 rounded-full border-4 border-slate-800" />
-                    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-pink-500 border-r-purple-500 border-b-cyan-400 animate-spin-slow rotate-45 shadow-[0_0_15px_rgba(236,72,153,0.4)]" />
-                    <div className="text-center font-mono">
-                      <span className="text-base font-bold text-white">98</span>
-                      <span className="block text-[8px] text-slate-400">Score</span>
+                    <div className="flex justify-between text-[10px] text-slate-500">
+                      <span>0 bits</span>
+                      <span>8 bits maximum</span>
+                    </div>
+
+                    <p className="text-[10px] leading-relaxed text-slate-400">
+                      Entropy mengukur keragaman nilai byte yang
+                      dianalisis. Nilai mendekati 8 menunjukkan
+                      distribusi byte yang lebih merata pada sampel.
+                      Nilai ini bukan jaminan keamanan algoritma.
+                    </p>
+                  </div>
+
+                  {/* Byte Distribution */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-[#080E24]/80 border border-blue-500/15 space-y-4">
+                    <div>
+                      <p className="text-sm font-bold text-white">
+                        Byte Distribution
+                      </p>
+
+                      <p className="text-[10px] text-slate-500 mt-1">
+                        Frequency of hexadecimal byte groups
+                      </p>
+                    </div>
+
+                    <div className="flex items-end gap-1 h-32 sm:h-40">
+                      {analysisData.histogram.map((count, index) => {
+                        const maxCount = Math.max(
+                          ...analysisData.histogram,
+                          1
+                        );
+
+                        return (
+                          <div
+                            key={index}
+                            className="flex-1 h-full flex flex-col justify-end items-center min-w-0"
+                          >
+                            <span className="text-[8px] text-slate-500 mb-1">
+                              {count > 0 ? count : ''}
+                            </span>
+
+                            <div
+                              className="w-full max-w-5 rounded-t-sm bg-gradient-to-t from-blue-700 to-cyan-400"
+                              style={{
+                                height: `${(count / maxCount) * 100}%`,
+                                minHeight: count > 0 ? '3px' : '0px'
+                              }}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="flex justify-between text-[9px] font-mono text-slate-500">
+                      <span>0x0</span>
+                      <span>0x4</span>
+                      <span>0x8</span>
+                      <span>0xC</span>
+                      <span>0xF</span>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-800 flex justify-between">
+                      <span className="text-[10px] text-slate-400">
+                        Bytes analyzed
+                      </span>
+
+                      <span className="text-xs font-mono font-bold text-cyan-300">
+                        {analysisData.bytesAnalyzed}
+                      </span>
                     </div>
                   </div>
-                  <span className="text-[10px] text-slate-400 font-mono mt-1">Entropy Index</span>
-                </div>
-              </div>
 
-              {/* 3 Mini Status Cards */}
-              <div className="grid grid-cols-3 gap-2.5">
-                <div className="p-3 rounded-2xl bg-[#090F24]/80 border border-blue-500/10 text-center">
-                  <span className="text-[10px] font-mono text-slate-400 block mb-0.5">ALGORITMA</span>
-                  <span className="text-xs font-bold text-cyan-300 font-mono">{selectedAlgo}</span>
-                  <span className="text-[9px] text-slate-500 block">Default Engine</span>
-                </div>
-                <div className="p-3 rounded-2xl bg-[#090F24]/80 border border-blue-500/10 text-center">
-                  <span className="text-[10px] font-mono text-slate-400 block mb-0.5">INTEGRITAS</span>
-                  <span className="text-xs font-bold text-emerald-400 font-mono">HMAC OK</span>
-                  <span className="text-[9px] text-slate-500 block">SHA-256</span>
-                </div>
-                <div className="p-3 rounded-2xl bg-[#090F24]/80 border border-blue-500/10 text-center">
-                  <span className="text-[10px] font-mono text-slate-400 block mb-0.5">STATUS INPUT</span>
-                  <span className="text-xs font-bold text-cyan-400 font-mono">{inputText.length > 0 ? 'READY' : 'EMPTY'}</span>
-                  <span className="text-[9px] text-slate-500 block">{inputText.length} Chars</span>
-                </div>
-              </div>
-            </div>
+                  {/* Avalanche Effect */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-[#080E24]/80 border border-purple-500/15 space-y-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-bold text-white">
+                          Avalanche Effect
+                        </p>
 
-            {/* Connected Vault Nodes */}
-            <div className="glass-panel-deep rounded-3xl p-5 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-semibold tracking-wider text-slate-300 uppercase">
-                  Connected Vault Nodes
-                </span>
-                <span className="text-[11px] text-cyan-400 cursor-pointer hover:underline">Manage nodes</span>
-              </div>
+                        <p className="text-[10px] text-slate-500 mt-1">
+                          Bit difference after changing one input bit
+                        </p>
+                      </div>
 
-              <div className="space-y-2">
-                {[
-                  { name: "Local Client Session", status: 'This Device', color: 'bg-emerald-400', icon: Laptop },
-                  { name: 'Hardware Security Module (HSM)', status: '100% Ready', color: 'bg-emerald-400', icon: HardDrive },
-                  { name: 'Biometric Authenticator', status: 'Active (85%)', color: 'bg-cyan-400', icon: Smartphone },
-                ].map((node, i) => {
-                  const NodeIcon = node.icon;
-                  return (
-                    <div key={i} className="p-3 rounded-2xl bg-[#090F24]/80 border border-blue-500/10 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-xl bg-slate-900 text-slate-300">
-                          <NodeIcon className="w-4 h-4" />
+                      <Zap className="w-5 h-5 text-purple-400 shrink-0" />
+                    </div>
+
+                    {analysisData.avalanchePercent !== null ? (
+                      <>
+                        <div className="flex items-end gap-2">
+                          <span className="text-3xl sm:text-4xl font-bold font-mono text-purple-300">
+                            {analysisData.avalanchePercent.toFixed(2)}%
+                          </span>
+
+                          <span className="text-xs text-slate-500 mb-1">
+                            bits changed
+                          </span>
                         </div>
-                        <span className="text-xs font-medium text-slate-200">{node.name}</span>
+
+                        <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-purple-600 to-pink-400"
+                            style={{
+                              width: `${analysisData.avalanchePercent}%`
+                            }}
+                          />
+                        </div>
+
+                        <p className="text-[10px] leading-relaxed text-slate-400">
+                          Persentase dihitung dengan membandingkan
+                          hash asli dan hash setelah satu bit input
+                          diubah. Hasil ini merupakan satu pengujian
+                          sampel, bukan bukti menyeluruh keamanan hash.
+                        </p>
+                      </>
+                    ) : (
+                      <div className="p-3 rounded-xl bg-slate-950/50 border border-slate-800">
+                        <p className="text-xs text-slate-400 leading-relaxed">
+                          Avalanche Effect belum dihitung untuk
+                          AES-GCM pada tampilan ini. Analisis
+                          avalanche tersedia untuk SHA-512 dan HMAC.
+                        </p>
                       </div>
-                      <div className="flex items-center gap-1.5 font-mono text-xs text-slate-400">
-                        <span className={`w-2 h-2 rounded-full ${node.color} animate-pulse`} />
-                        <span>{node.status}</span>
-                      </div>
-                    </div>
-                  );
-                })}
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* Footer */}
+              <div className="flex items-start gap-3 p-3 sm:p-4 rounded-2xl bg-blue-950/20 border border-blue-500/10">
+                <Shield className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
+
+                <p className="text-[10px] sm:text-[11px] leading-relaxed text-slate-400">
+                  Analisis ini dihitung dari data kriptografi aktual.
+                  Entropy dan distribusi byte bersifat deskriptif,
+                  sedangkan Avalanche Effect membandingkan bit hash
+                  dari input asli dan input yang dimodifikasi.
+                </p>
               </div>
+
             </div>
 
           </div>
